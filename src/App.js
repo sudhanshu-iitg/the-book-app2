@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ReactMarkdown from 'react-markdown';
 import './App.css';
 import PdfViewer from './PdfViewer';
 import { Document, Page, pdfjs } from "react-pdf";
@@ -17,11 +18,19 @@ function App() {
   const [popupPdfUrl, setPopupPdfUrl] = useState('');
   const [categories, setCategories] = useState([]);
   const [summary, setSummary] = useState('');
-
+  const [selectedChapter, setSelectedChapter] = useState('');
+  const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   useEffect(() => {
     fetchCategories();
   }, []);
-
+  
+  const handleNextChapter = () => {
+    const chapters = Object.keys(summary);
+    if (currentChapterIndex < chapters.length - 1) {
+      setCurrentChapterIndex(currentChapterIndex + 1);
+      setSelectedChapter(chapters[currentChapterIndex + 1]);
+    }
+  };
   const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
@@ -51,18 +60,35 @@ function App() {
   };
 
   const fetchSummary = async (bookId) => {
-    console.log(bookId)
     try {
       const { data, error } = await supabase
         .from('summaries')
         .select('content')
         .eq('book_id', bookId)
         .single();
-      
+  
       if (error) throw error;
-      setSummary(data.content);
+  
+      console.log('Raw summary data:', data.content);
+  
+      let parsedContent;
+      try {
+        // Clean the JSON string
+        let cleanedContent = data.content.trim(); // Trim leading/trailing whitespace
+        console.log('Cleaned content:', cleanedContent);
+        parsedContent = JSON.parse(cleanedContent);
+      } catch (parseError) {
+        console.error('Error parsing JSON:', parseError);
+        console.log('Problematic JSON string:', data.content);
+        setSummary(null);
+        return;
+      }
+  
+      setSummary(parsedContent);
+      setSelectedChapter(Object.keys(parsedContent)[0]);
     } catch (error) {
       console.error('Error fetching summary:', error.message);
+      setSummary(null);
     }
   };
   const handleSearch = async () => {
@@ -122,15 +148,19 @@ function App() {
             </div>
           ))}
         </div>
-        {summary && (
-          <div className="summary">
-            <h2>Summary</h2>
-            <p>{summary}</p>
+        {summary && selectedChapter && (
+          <div className="summary-card">
+            <h2>{selectedChapter}</h2>
+            <div className="chapter-content">
+              <ReactMarkdown>{summary[selectedChapter]}</ReactMarkdown>
+            </div>
+            <button onClick={handleNextChapter}>Next Chapter</button>
           </div>
         )}
       </main>
     </div>
   );
+  
 }
 
 export default App;
