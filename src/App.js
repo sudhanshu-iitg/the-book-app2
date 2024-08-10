@@ -20,6 +20,10 @@ function App() {
   const [summary, setSummary] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
+  const [showCategories, setShowCategories] = useState(true);
+  const [showBooks, setShowBooks] = useState(false);
+  const [showBackIcon, setShowBackIcon] = useState(false);
+  const [breadcrumbs, setBreadcrumbs] = useState(['Categories']);
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -69,21 +73,50 @@ function App() {
 
   const fetchBooksByCategory = async (categoryId) => {
     try {
-      const { data, error } = await supabase
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('id', categoryId)
+        .single();
+  
+      const { data: booksData, error } = await supabase
         .from('books')
         .select('*')
         .eq('category_id', categoryId);
-      
+  
       if (error) throw error;
-      setBooks(data);
-      setSummary('');
+  
+      setBooks(booksData);
+      setBreadcrumbs(['Categories', categoryData.name]);
+      setShowCategories(false);
+      setShowBooks(true);
+      setShowBackIcon(true);
     } catch (error) {
       console.error('Error fetching books:', error.message);
     }
   };
-
+  const handleBackClick = () => {
+    if (showBooks) {
+      setShowBooks(false);
+      setShowCategories(true);
+      setBreadcrumbs(['Categories']);
+      setShowBackIcon(false);
+    } else if (summary) {
+      setShowBooks(true);
+      setSummary(null);
+      setSelectedChapter(null);
+      setBreadcrumbs((prev) => prev.slice(0, -1)); // Remove the book title
+      setShowBackIcon(true);
+    }
+  };
   const fetchSummary = async (bookId) => {
     try {
+      const { data: bookData } = await supabase
+        .from('books')
+        .select('title')
+        .eq('id', bookId)
+        .single();
+  
       const { data, error } = await supabase
         .from('summaries')
         .select('content')
@@ -92,14 +125,13 @@ function App() {
   
       if (error) throw error;
   
-      console.log('Raw summary data:', data.content);
-  
       let parsedContent;
       try {
-        // Clean the JSON string
-        let cleanedContent = data.content.trim(); // Trim leading/trailing whitespace
-        console.log('Cleaned content:', cleanedContent);
+        let cleanedContent = data.content.trim();
         parsedContent = JSON.parse(cleanedContent);
+        setBreadcrumbs((prev) => [...prev, bookData.title]);
+        setShowBooks(false);
+        setShowBackIcon(true);
       } catch (parseError) {
         console.error('Error parsing JSON:', parseError);
         console.log('Problematic JSON string:', data.content);
@@ -154,34 +186,67 @@ function App() {
           />
           <button onClick={handleSearch}>Search</button>
         </div>
-      </header>
-      <main>
-        <div className="categories">
-          {categories.map((category) => (
-            <button key={category.id} onClick={() => fetchBooksByCategory(category.id)}>
-              {category.name}
+        {showBackIcon && (
+          <div className="back-button-container">
+            <button className="back-button" onClick={handleBackClick}>
+              ← Back
             </button>
-          ))}
-        </div>
-        <div className="book-list">
-          {books.map((book) => (
-            <div key={book.id} className="book-item" onClick={() => fetchSummary(book.id)}>
-              <h3>{book.title}</h3>
-              <p>{book.author}</p>
-            </div>
-          ))}
-        </div>
-        {summary && selectedChapter && (
-          <div className="summary-card" onMouseUp={handleCardClick}>
-            {/* <h2>{selectedChapter}</h2> */}
-            <div className="chapter-content">
-              <ReactMarkdown>{summary[selectedChapter]}</ReactMarkdown>
+            <div className="breadcrumbs">
+              {breadcrumbs.join(' > ')}
             </div>
           </div>
         )}
+      </header>
+      <main>
+        {showCategories && (
+          <div className="categories">
+            {categories.map((category) => (
+              <button key={category.id} onClick={() => fetchBooksByCategory(category.id, category.name)}>
+                {category.name}
+              </button>
+            ))}
+          </div>
+        )}
+        {showBooks && (
+          <div className="book-list">
+            {books.map((book) => (
+              <div key={book.id} className="book-item" onClick={() => fetchSummary(book.id, book.title)}>
+                <h3>{book.title}</h3>
+                <p>{book.author}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {summary && selectedChapter && (
+  <div className="summary-card" onMouseUp={handleCardClick}>
+    <h2>{selectedChapter}</h2>
+    <div className="chapter-content">
+      <ReactMarkdown>{summary[selectedChapter]}</ReactMarkdown>
+    </div>
+    <div className="chapter-navigation">
+      <div className="button-container">
+        <button 
+          onClick={handlePreviousChapter} 
+          disabled={currentChapterIndex === 0}
+        >
+          Previous Chapter
+        </button>
+        <button 
+          onClick={handleNextChapter}
+          disabled={currentChapterIndex === Object.keys(summary).length - 1}
+        >
+          Next Chapter
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </main>
     </div>
   );
+  
+  
+  
   
 }
 
