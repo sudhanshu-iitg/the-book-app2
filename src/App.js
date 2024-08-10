@@ -23,12 +23,35 @@ function App() {
   useEffect(() => {
     fetchCategories();
   }, []);
-  
+
   const handleNextChapter = () => {
     const chapters = Object.keys(summary);
     if (currentChapterIndex < chapters.length - 1) {
       setCurrentChapterIndex(currentChapterIndex + 1);
       setSelectedChapter(chapters[currentChapterIndex + 1]);
+    }
+  };
+  
+  const handlePreviousChapter = () => {
+    if (currentChapterIndex > 0) {
+      setCurrentChapterIndex(currentChapterIndex - 1);
+      setSelectedChapter(Object.keys(summary)[currentChapterIndex - 1]);
+    }
+  };
+
+  const handleCardClick = (event) => {
+    const selection = window.getSelection();
+    
+    // Only navigate if there's no text selected
+    if (!selection || selection.toString().length === 0) {
+      const cardWidth = event.currentTarget.clientWidth;
+      const clickX = event.clientX - event.currentTarget.getBoundingClientRect().left;
+  
+      if (clickX < cardWidth / 2) {
+        handlePreviousChapter(); // Click on left half
+      } else {
+        handleNextChapter(); // Click on right half
+      }
     }
   };
   const fetchCategories = async () => {
@@ -149,12 +172,11 @@ function App() {
           ))}
         </div>
         {summary && selectedChapter && (
-          <div className="summary-card">
-            <h2>{selectedChapter}</h2>
+          <div className="summary-card" onMouseUp={handleCardClick}>
+            {/* <h2>{selectedChapter}</h2> */}
             <div className="chapter-content">
               <ReactMarkdown>{summary[selectedChapter]}</ReactMarkdown>
             </div>
-            <button onClick={handleNextChapter}>Next Chapter</button>
           </div>
         )}
       </main>

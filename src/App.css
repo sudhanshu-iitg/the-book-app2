@@ -122,17 +122,6 @@
 .chapter-content {
   line-height: 1.6;
 }
-.summary-card {
-  border: 1px solid #ccc;
-  padding: 20px;
-  margin: 20px 0;
-  border-radius: 10px;
-  background-color: #f9f9f9;
-}
-
-.summary-card h2 {
-  margin-bottom: 10px;
-}
 
 .chapter-content {
   margin-bottom: 20px;
@@ -149,4 +138,17 @@ button {
 
 button:hover {
   background-color: #0056b3;
+}
+.summary-card {
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  position: relative;
+  cursor: pointer;
+}
+
+.summary-card h2 {
+  margin-bottom: 10px;
 }
