@@ -24,9 +24,32 @@ function App() {
   const [breadcrumbs, setBreadcrumbs] = useState(['Categories']);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
+  const [chapterContent, setChapterContent] = useState('');
+  const [activeTab, setActiveTab] = useState('summary');
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  const fetchChapterContent = async (bookId, chapterTitle) => {
+    try {
+      const { data, error } = await supabase
+        .from('chapter_contents')
+        .select('content')
+        .eq('book_id', bookId)
+        .eq('chapter_title', chapterTitle)
+        .single();
+
+      if (error) {
+        console.error('Error fetching chapter content:', error.message, { bookId, chapterTitle });
+        throw error;
+      }
+
+      setChapterContent(data.content);
+    } catch (error) {
+      console.error('Error fetching chapter content:', error.message);
+      setChapterContent('');
+    }
+  };
   const handleBookClick = async (book) => {
     try {
       const { data: bookData } = await supabase
@@ -34,7 +57,7 @@ function App() {
         .select('title')
         .eq('id', book.Id)
         .single();
-        const { data, error } = await supabase
+      const { data, error } = await supabase
         .from('summaries')
         .select('content')
         .eq('book_id', book.Id)
@@ -42,16 +65,19 @@ function App() {
       if (error) throw error;
   
       if (data && data.content) {
-        // Summary is available
         let parsedContent = JSON.parse(data.content.trim());
+        const firstChapter = Object.keys(parsedContent)[0];
         setSummary(parsedContent);
-        setSelectedChapter(Object.keys(parsedContent)[0]);
+        setSelectedChapter(firstChapter);
         setCurrentChapterIndex(0);
-        setBreadcrumbs((prev) => [...prev, book.Title]);
+        setBreadcrumbs(prev => [...prev, book.Title, firstChapter]);
         setShowBooks(false);
         setShowBackIcon(true);
+        setSelectedBookId(book.Id);
+        
+        // Fetch the content of the first chapter
+        await fetchChapterContent(book.Id, firstChapter);
       } else {
-        // Summary is not available
         setShowPopup(true);
       }
     } catch (error) {
@@ -71,34 +97,32 @@ function App() {
       </div>
     );
   };
-  const handleNextChapter = () => {
+  const handleNextChapter = async () => {
     const chapters = Object.keys(summary);
     if (currentChapterIndex < chapters.length - 1) {
-      setCurrentChapterIndex(currentChapterIndex + 1);
-      setSelectedChapter(chapters[currentChapterIndex + 1]);
+      const nextIndex = currentChapterIndex + 1;
+      const nextChapter = chapters[nextIndex];
+      setCurrentChapterIndex(nextIndex);
+      setSelectedChapter(nextChapter);
+      setBreadcrumbs(prev => [...prev.slice(0, -1), nextChapter]);
+      await fetchChapterContent(selectedBookId, nextChapter);
     }
   };
   
-  const handlePreviousChapter = () => {
+  const handlePreviousChapter = async () => {
     if (currentChapterIndex > 0) {
-      setCurrentChapterIndex(currentChapterIndex - 1);
-      setSelectedChapter(Object.keys(summary)[currentChapterIndex - 1]);
+      const prevIndex = currentChapterIndex - 1;
+      const prevChapter = Object.keys(summary)[prevIndex];
+      setCurrentChapterIndex(prevIndex);
+      setSelectedChapter(prevChapter);
+      setBreadcrumbs(prev => [...prev.slice(0, -1), prevChapter]);
+      await fetchChapterContent(selectedBookId, prevChapter);
     }
   };
-
-  const handleCardClick = (event) => {
-    const selection = window.getSelection();
-    
-    // Only navigate if there's no text selected
-    if (!selection || selection.toString().length === 0) {
-      const cardWidth = event.currentTarget.clientWidth;
-      const clickX = event.clientX - event.currentTarget.getBoundingClientRect().left;
-  
-      if (clickX < cardWidth / 2) {
-        handlePreviousChapter(); // Click on left half
-      } else {
-        handleNextChapter(); // Click on right half
-      }
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'fullChapter' && !chapterContent) {
+      fetchChapterContent(selectedBookId, selectedChapter);
     }
   };
   const fetchCategories = async () => {
@@ -150,43 +174,6 @@ function App() {
       setSelectedChapter(null);
       setBreadcrumbs((prev) => prev.slice(0, -1)); // Remove the book title
       setShowBackIcon(true);
-    }
-  };
-  const fetchSummary = async (bookId) => {
-    try {
-      const { data: bookData } = await supabase
-        .from('books')
-        .select('title')
-        .eq('id', bookId)
-        .single();
-  
-      const { data, error } = await supabase
-        .from('summaries')
-        .select('content')
-        .eq('book_id', bookId)
-        .single();
-  
-      if (error) throw error;
-  
-      let parsedContent;
-      try {
-        let cleanedContent = data.content.trim();
-        parsedContent = JSON.parse(cleanedContent);
-        setBreadcrumbs((prev) => [...prev, bookData.title]);
-        setShowBooks(false);
-        setShowBackIcon(true);
-      } catch (parseError) {
-        console.error('Error parsing JSON:', parseError);
-        console.log('Problematic JSON string:', data.content);
-        setSummary(null);
-        return;
-      }
-  
-      setSummary(parsedContent);
-      setSelectedChapter(Object.keys(parsedContent)[0]);
-    } catch (error) {
-      console.error('Error fetching summary:', error.message);
-      setSummary(null);
     }
   };
   const handleSearch = async () => {
@@ -274,30 +261,52 @@ function App() {
     ))}
   </div>
 )}
-        {summary && selectedChapter && (
-  <div className="summary-card" onMouseUp={handleCardClick}>
-    <h2>{selectedChapter}</h2>
-    <div className="chapter-content">
-      <ReactMarkdown>{summary[selectedChapter]}</ReactMarkdown>
-    </div>
-    <div className="chapter-navigation">
-      <div className="button-container">
-        <button 
-          onClick={handlePreviousChapter} 
-          disabled={currentChapterIndex === 0}
-        >
-          Previous Chapter
-        </button>
-        <button 
-          onClick={handleNextChapter}
-          disabled={currentChapterIndex === Object.keys(summary).length - 1}
-        >
-          Next Chapter
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                {summary && selectedChapter && (
+          <div className="summary-card">
+            <h2>{selectedChapter}</h2>
+            <ul className="nav nav-tabs mb-3">
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${activeTab === 'summary' ? 'active' : ''}`}
+                  onClick={() => handleTabChange('summary')}
+                >
+                  Summary
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${activeTab === 'fullChapter' ? 'active' : ''}`}
+                  onClick={() => handleTabChange('fullChapter')}
+                >
+                  Full Chapter
+                </button>
+              </li>
+            </ul>
+            <div className="chapter-content">
+              <ReactMarkdown>
+                {activeTab === 'summary' ? summary[selectedChapter] : chapterContent}
+              </ReactMarkdown>
+            </div>
+            <div className="chapter-navigation mt-3">
+              <div className="d-flex justify-content-between">
+                <button 
+                  className="btn btn-secondary"
+                  onClick={handlePreviousChapter} 
+                  disabled={currentChapterIndex === 0}
+                >
+                  Previous Chapter
+                </button>
+                <button 
+                  className="btn btn-secondary"
+                  onClick={handleNextChapter}
+                  disabled={currentChapterIndex === Object.keys(summary).length - 1}
+                >
+                  Next Chapter
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
       {showPopup && (
   <Popup 
