@@ -4,12 +4,40 @@ import './App.css';
 import PdfViewer from './PdfViewer';
 import { Document, Page, pdfjs } from "react-pdf";
 import { createClient } from "@supabase/supabase-js";
+import { Share2 } from "lucide-react";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
 const supabaseKey = process.env.REACT_APP_supabaseKey
 const supabase = createClient(supabaseUrl, supabaseKey)
 
+const Toast = ({ message, isVisible, onClose }) => {
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      backgroundColor: '#333',
+      color: 'white',
+      padding: '10px 20px',
+      borderRadius: '5px',
+      zIndex: 1000
+    }}>
+      {message}
+    </div>
+  );
+};
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,9 +54,105 @@ function App() {
   const [selectedBookId, setSelectedBookId] = useState(null);
   const [chapterContent, setChapterContent] = useState('');
   const [activeTab, setActiveTab] = useState('summary');
+  const [sharedUrl, setSharedUrl] = useState('');
+  const [toastMessage, setToastMessage] = useState("");
+const [isToastVisible, setIsToastVisible] = useState(false);
+
   useEffect(() => {
     fetchCategories();
-  }, []);
+    handleSharedUrl();
+  }, [window.location.search]);
+
+  const handleSharedUrl = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get('bookId');
+    const chapterTitle = urlParams.get('chapter');
+  
+    console.log('Shared URL parameters:', { bookId, chapterTitle });
+  
+    if (!bookId || !chapterTitle) {
+      console.error('Invalid shared URL: missing bookId or chapterTitle');
+      // setError('Invalid shared URL: missing book ID or chapter title');
+      return;
+    }
+  
+    try {
+      // Fetch book data
+      const { data: bookData, error: bookError } = await supabase
+        .from('books')
+        .select('Title')
+        .eq('Id', bookId)
+        .single();
+  
+      if (bookError) throw bookError;
+      console.log('Book data:', bookData);
+  
+      // Fetch summary data
+      const { data: summaryData, error: summaryError } = await supabase
+        .from('summaries')
+        .select('content')
+        .eq('book_id', bookId)
+        .single();
+  
+      if (summaryError) throw summaryError;
+      console.log('Summary data:', summaryData);
+  
+      // Fetch chapter content
+      const { data: chapterData, error: chapterError } = await supabase
+        .from('chapter_contents')
+        .select('content')
+        .eq('book_id', bookId)
+        .eq('chapter_title', chapterTitle)
+        .single();
+  
+      if (chapterError) throw chapterError;
+      console.log('Chapter data:', chapterData);
+  
+      if (summaryData && summaryData.content && chapterData) {
+        let parsedContent = JSON.parse(summaryData.content.trim());
+        setSummary(parsedContent);
+        setSelectedChapter(chapterTitle);
+        setCurrentChapterIndex(Object.keys(parsedContent).indexOf(chapterTitle));
+        setBreadcrumbs(['Categories', bookData.title, chapterTitle]);
+        setShowCategories(false);
+        setShowBooks(false);
+        setShowBackIcon(true);
+        setSelectedBookId(bookId);
+        setChapterContent(chapterData.content);
+        setActiveTab('summary');
+      } else {
+        throw new Error('Missing data in the response');
+      }
+    } catch (error) {
+      console.error('Error handling shared URL:', error.message);
+      // setError(`Error loading shared content: ${error.message}`);
+    }
+  };
+  const showToast = (message) => {
+    setToastMessage(message);
+    setIsToastVisible(true);
+  };
+  
+  const hideToast = () => {
+    setIsToastVisible(false);
+  };
+  const generateShareableUrl = () => {
+    if (!selectedBookId || !selectedChapter) {
+      console.error('Cannot generate shareable URL: missing bookId or chapter');
+      // setError('Cannot generate shareable URL: missing book ID or chapter');
+      return;
+    }
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/?bookId=${selectedBookId}&chapter=${encodeURIComponent(selectedChapter)}`;
+    setSharedUrl(shareUrl);
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      showToast("Link copied to clipboard!");
+    }).catch((err) => {
+      console.error('Failed to copy link:', err);
+      showToast("Failed to copy link. Please try again.");
+    });
+    console.log('Generated shareable URL:', shareUrl);
+  };
 
   const fetchChapterContent = async (bookId, chapterTitle) => {
     try {
@@ -288,24 +412,34 @@ function App() {
               </ReactMarkdown>
             </div>
             <div className="chapter-navigation mt-3">
-              <div className="d-flex justify-content-between">
-                <button 
-                  className="btn btn-secondary"
-                  onClick={handlePreviousChapter} 
-                  disabled={currentChapterIndex === 0}
-                >
-                  Previous Chapter
-                </button>
-                <button 
-                  className="btn btn-secondary"
-                  onClick={handleNextChapter}
-                  disabled={currentChapterIndex === Object.keys(summary).length - 1}
-                >
-                  Next Chapter
-                </button>
-              </div>
-            </div>
-          </div>
+  <div className="d-flex justify-content-between align-items-center">
+    <button 
+      className="btn btn-secondary"
+      onClick={handlePreviousChapter} 
+      disabled={currentChapterIndex === 0}
+    >
+      Previous Chapter
+    </button>
+    <div className="d-flex align-items-center">
+      <button 
+        className="btn btn-secondary me-2"
+        onClick={handleNextChapter}
+        disabled={currentChapterIndex === Object.keys(summary).length - 1}
+      >
+        Next Chapter
+      </button>
+      <button
+  className="btn btn-outline-secondary"
+  onClick={generateShareableUrl}
+  title="Share this chapter"
+>
+  <Share2 />
+</button>
+    </div>
+  </div>
+</div>
+          </div>  
+          
         )}
       </main>
       {showPopup && (
@@ -314,13 +448,14 @@ function App() {
     bookTitle={books.find(b => b.id === selectedBookId)?.title || 'Selected book'}
   />
 )}
+    <Toast 
+  message={toastMessage} 
+  isVisible={isToastVisible} 
+  onClose={hideToast} 
+/>
     </div>
     
   );
-  
-  
-  
-  
 }
 
 export default App;
