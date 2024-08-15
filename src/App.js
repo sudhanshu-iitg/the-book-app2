@@ -179,12 +179,12 @@ const [isToastVisible, setIsToastVisible] = useState(false);
       const { data: bookData } = await supabase
         .from('books')
         .select('title')
-        .eq('id', book.Id)
+        .eq('title', book.Title)
         .single();
       const { data, error } = await supabase
         .from('summaries')
         .select('content')
-        .eq('book_id', book.Id)
+        .eq('book_id', bookData.Id)
         .single();
       if (error) throw error;
   
@@ -202,6 +202,8 @@ const [isToastVisible, setIsToastVisible] = useState(false);
         // Fetch the content of the first chapter
         await fetchChapterContent(book.Id, firstChapter);
       } else {
+        const apiUrl = `https://auto-production.up.railway.app/store?key=true&url=${encodeURIComponent(book.Mirror_2)}&title=${encodeURIComponent(book.Title)}&author=${encodeURIComponent(book.Author || 'Unknown Author')}`;
+        
         setShowPopup(true);
       }
     } catch (error) {
@@ -213,9 +215,9 @@ const [isToastVisible, setIsToastVisible] = useState(false);
     return (
       <div className="popup-overlay">
         <div className="popup-content">
-          <h2>Summary Not Available</h2>
-          <p>The summary for "{bookTitle}" is not available yet.</p>
-          <p>Book summaries on demand will be available in the near future.</p>
+          <h2>New book detected</h2>
+          <p>We have begun summarizing this book. </p>
+          <p>It will show up in the new books category shortly.</p>
           <button onClick={onClose}>Close</button>
         </div>
       </div>
@@ -309,7 +311,7 @@ const [isToastVisible, setIsToastVisible] = useState(false);
     setIsLoading(true);
     try {
       console.log('searchTerm:', searchTerm);
-      const response = await fetch(`https://auto-01px.onrender.com/search?key=${encodeURIComponent(searchTerm)}`);
+      const response = await fetch(`https://auto-production.up.railway.app/search?key=${encodeURIComponent(searchTerm)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -381,6 +383,7 @@ const [isToastVisible, setIsToastVisible] = useState(false);
       >
         <h3>{book.Title}</h3>
         <p>{book.Author ? book.Author: 'Unknown Author'}</p>
+        <p>{book.Size ? book.Size: ' - '}</p>
       </div>
     ))}
   </div>
