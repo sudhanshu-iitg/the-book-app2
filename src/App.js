@@ -176,11 +176,19 @@ const [isToastVisible, setIsToastVisible] = useState(false);
   };
   const handleBookClick = async (book) => {
     try {
-      const { data: bookData } = await supabase
+      const { data: bookData, error: bookError } = await supabase
         .from('books')
-        .select('title')
-        .eq('title', book.Title)
+        .select('Id')
+        .eq('Title', book.Title)
         .single();
+        if (bookError) {
+          console.error('Error fetching book:', bookError.message);
+          // If book not found, proceed to add it via API
+          const apiUrl = `https://auto-production.up.railway.app/store?key=true&url=${encodeURIComponent(book.Mirror_2)}&title=${encodeURIComponent(book.Title)}&author=${encodeURIComponent(book.Author || 'Unknown Author')}`;
+          const response = await fetch(apiUrl);
+          setShowPopup(true);
+          return;
+        }
       const { data, error } = await supabase
         .from('summaries')
         .select('content')
@@ -201,11 +209,7 @@ const [isToastVisible, setIsToastVisible] = useState(false);
         
         // Fetch the content of the first chapter
         await fetchChapterContent(book.Id, firstChapter);
-      } else {
-        const apiUrl = `https://auto-production.up.railway.app/store?key=true&url=${encodeURIComponent(book.Mirror_2)}&title=${encodeURIComponent(book.Title)}&author=${encodeURIComponent(book.Author || 'Unknown Author')}`;
-        
-        setShowPopup(true);
-      }
+      } 
     } catch (error) {
       console.error('Error fetching summary:', error.message);
       setShowPopup(true);
