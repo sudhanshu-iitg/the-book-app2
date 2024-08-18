@@ -6,6 +6,10 @@ import { Document, Page, pdfjs } from "react-pdf";
 import { createClient } from "@supabase/supabase-js";
 import { Share2 , Search } from "lucide-react";
 import Categories from './components/Categories.js';
+import RecommendedBooks from './components/RecommendedBooks';
+import ProfessionBooks from './components/ProfessionBooks';
+import './components/RecommendedBooks.css';
+import './components/ProfessionBooks.css';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
@@ -73,13 +77,77 @@ function App() {
   const [activeTab, setActiveTab] = useState('summary');
   const [sharedUrl, setSharedUrl] = useState('');
   const [toastMessage, setToastMessage] = useState("");
-const [isToastVisible, setIsToastVisible] = useState(false);
-
+  const [isToastVisible, setIsToastVisible] = useState(false);
+  const [recommenders, setRecommenders] = useState([]);
+  const [professions, setProfessions] = useState([]);
   useEffect(() => {
     fetchCategories();
     handleSharedUrl();
+    fetchRecommenders();
+    fetchProfessions();
   }, [window.location.search]);
 
+  const fetchRecommenders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('recommenders')
+        .select('*')
+        .limit(3);  // Adjust this number as needed
+
+      if (error) throw error;
+      setRecommenders(data);
+    } catch (error) {
+      console.error('Error fetching recommenders:', error.message);
+    }
+  };
+  const fetchProfessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('professions')
+        .select('*')
+        .limit(3);  // Adjust this number as needed
+
+      if (error) throw error;
+      setProfessions(data);
+    } catch (error) {
+      console.error('Error fetching professions:', error.message);
+    }
+  };
+  const fetchBooksByRecommender = async (recommenderId) => {
+    try {
+      const { data, error } = await supabase
+        .from('books')
+        .select('*')
+        .eq('recommender_id', recommenderId);
+
+      if (error) throw error;
+      setBooks(data);
+      setShowCategories(false);
+      setShowBooks(true);
+      setShowBackIcon(true);
+      // You might want to update breadcrumbs here as well
+    } catch (error) {
+      console.error('Error fetching books by recommender:', error.message);
+    }
+  };
+
+  const fetchBooksByProfession = async (professionId) => {
+    try {
+      const { data, error } = await supabase
+        .from('books')
+        .select('*')
+        .eq('profession_id', professionId);
+
+      if (error) throw error;
+      setBooks(data);
+      setShowCategories(false);
+      setShowBooks(true);
+      setShowBackIcon(true);
+      // Update breadcrumbs here
+    } catch (error) {
+      console.error('Error fetching books by profession:', error.message);
+    }
+  };
   const handleSharedUrl = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('bookId');
@@ -394,7 +462,17 @@ const [isToastVisible, setIsToastVisible] = useState(false);
       </header>
       <main>
       {showCategories && (
-  <Categories categories={categories} onCategoryClick={fetchBooksByCategory} />
+  <>
+    <Categories categories={categories} onCategoryClick={fetchBooksByCategory} />
+    <RecommendedBooks 
+      recommenders={recommenders} 
+      onRecommenderClick={fetchBooksByRecommender} 
+    />
+    <ProfessionBooks 
+      professions={professions} 
+      onProfessionClick={fetchBooksByProfession} 
+    />
+  </>
 )}
  {showBooks && (
   <div className="book-list">
