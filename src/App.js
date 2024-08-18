@@ -198,14 +198,13 @@ const [isToastVisible, setIsToastVisible] = useState(false);
         .select('Id')
         .eq('Title', book.Title)
         .single();
-        if (bookError) {
-          console.error('Error fetching book:', bookError.message);
-          // If book not found, proceed to add it via API
-          const apiUrl = `https://auto-production.up.railway.app/store?key=true&url=${encodeURIComponent(book.Mirror_2)}&title=${encodeURIComponent(book.Title)}&author=${encodeURIComponent(book.Author || 'Unknown Author')}`;
-          const response = await fetch(apiUrl);
-          setShowPopup(true);
-          return;
-        }
+      if (bookError) {
+        console.error('Error fetching book:', bookError.message);
+        const apiUrl = `https://auto-production.up.railway.app/store?key=true&url=${encodeURIComponent(book.Mirror_2)}&title=${encodeURIComponent(book.Title)}&author=${encodeURIComponent(book.Author || 'Unknown Author')}`;
+        await fetch(apiUrl);
+        setShowPopup(true);
+        return;
+      }
       const { data, error } = await supabase
         .from('summaries')
         .select('content')
@@ -224,7 +223,6 @@ const [isToastVisible, setIsToastVisible] = useState(false);
         setShowBackIcon(true);
         setSelectedBookId(book.Id);
         
-        // Fetch the content of the first chapter
         await fetchChapterContent(book.Id, firstChapter);
       } 
     } catch (error) {
@@ -324,7 +322,7 @@ const [isToastVisible, setIsToastVisible] = useState(false);
       setShowBooks(true);
       setShowBackIcon(true);
     } catch (error) {
-      console.error('Error fetching books:', error.message);
+      console.error('Error fetching books:', error);
     }
   };
   const handleBackClick = () => {
@@ -349,7 +347,6 @@ const [isToastVisible, setIsToastVisible] = useState(false);
   
     setIsLoading(true);
     try {
-      console.log('searchTerm:', searchTerm);
       const response = await fetch(`https://auto-production.up.railway.app/search?key=${encodeURIComponent(searchTerm)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -358,11 +355,10 @@ const [isToastVisible, setIsToastVisible] = useState(false);
       
       if (data.docs && Array.isArray(data.docs)) {
         setBooks(data.docs.slice(0, 10));
-        console.log('Books:', data.docs.slice(0, 10)); // Limiting to 10 results
         setShowCategories(false);
         setShowBooks(true);
         setShowBackIcon(true);
-        setBreadcrumbs([ 'Search Results']);
+        setBreadcrumbs(['Search Results']);
       } else {
         console.error('Unexpected data structure:', data);
         alert('No results found or unexpected data structure');
@@ -374,7 +370,6 @@ const [isToastVisible, setIsToastVisible] = useState(false);
       setIsLoading(false);
     }
   };
-
  
   return (
     <div className="App">
@@ -401,17 +396,30 @@ const [isToastVisible, setIsToastVisible] = useState(false);
       {showCategories && (
   <Categories categories={categories} onCategoryClick={fetchBooksByCategory} />
 )}
-        {showBooks && (
+ {showBooks && (
   <div className="book-list">
     {books.map((book) => (
-      <div 
-        key={book.Id} 
-        className="book-item" 
-        onClick={() => handleBookClick(book)}
-      >
-        <h3>{book.Title}</h3>
-        <p>{book.Author ? book.Author: 'Unknown Author'}</p>
-        <p>{book.Size ? book.Size: ' - '}</p>
+      <div key={book.Id} className="book-item">
+        {book.coverUrl && (
+          <img 
+            src={book.coverUrl} 
+            alt={book.Title} 
+            className="book-cover"
+          />
+        )}
+        <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
+          <div>
+            <h3 className="book-title">{book.Title}</h3>
+            <p className="book-author">{book.Author ? book.Author : 'Unknown Author'}</p>
+            <p className="book-size">{book.Size ? book.Size : ' - '}</p>
+          </div>
+          <button 
+            className="book-action"
+            onClick={() => handleBookClick(book)}
+          >
+            View Details
+          </button>
+        </div>
       </div>
     ))}
   </div>
