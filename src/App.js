@@ -4,7 +4,8 @@ import './App.css';
 import PdfViewer from './PdfViewer';
 import { Document, Page, pdfjs } from "react-pdf";
 import { createClient } from "@supabase/supabase-js";
-import { Share2 } from "lucide-react";
+import { Share2 , Search } from "lucide-react";
+import Categories from './components/Categories.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
@@ -35,6 +36,22 @@ const Toast = ({ message, isVisible, onClose }) => {
       zIndex: 1000
     }}>
       {message}
+    </div>
+  );
+};
+const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, isLoading }) => {
+  return (
+    <div className="search-container">
+      <input
+        type="text"
+        placeholder="Search for titles..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+      />
+      <button onClick={handleSearch} disabled={isLoading}>
+        <Search size={20} color="white" />
+      </button>
     </div>
   );
 };
@@ -262,10 +279,28 @@ const [isToastVisible, setIsToastVisible] = useState(false);
         .select('*');
       
       if (error) throw error;
-      setCategories(data);
+      
+      // Map icons to categories (you can customize this based on your needs)
+      const categoriesWithIcons = data.map(category => ({
+        ...category,
+        icon: getCategoryIcon(category.name)
+      }));
+      
+      setCategories(categoriesWithIcons);
     } catch (error) {
       console.error('Error fetching categories:', error.message);
     }
+  };
+  
+  // Helper function to map category names to icons
+  const getCategoryIcon = (categoryName) => {
+    const iconMap = {
+      'Finance': 'DollarSign',
+      'Product management': 'Briefcase',
+      'Personal development': 'User',
+      // Add more mappings as needed
+    };
+    return iconMap[categoryName] || 'Folder'; // Fallback to 'Folder' if no match
   };
 
   const fetchBooksByCategory = async (categoryId) => {
@@ -344,18 +379,13 @@ const [isToastVisible, setIsToastVisible] = useState(false);
   return (
     <div className="App">
       <header>
-        <div className="search-container">
-  <input
-    type="text"
-    placeholder="Search for books..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-  />
-  <button onClick={handleSearch} disabled={isLoading}>
-    {isLoading ? 'Searching...' : 'Search'}
-  </button>
-</div>
+      <div className="search-wrapper">
+        <SearchBar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          handleSearch={handleSearch}
+          isLoading={isLoading}
+        /></div>
         {showBackIcon && (
           <div className="back-button-container">
             <button className="back-button" onClick={handleBackClick}>
@@ -368,15 +398,9 @@ const [isToastVisible, setIsToastVisible] = useState(false);
         )}
       </header>
       <main>
-        {showCategories && (
-          <div className="categories">
-            {categories.map((category) => (
-              <button key={category.id} onClick={() => fetchBooksByCategory(category.id, category.name)}>
-                {category.name}
-              </button>
-            ))}
-          </div>
-        )}
+      {showCategories && (
+  <Categories categories={categories} onCategoryClick={fetchBooksByCategory} />
+)}
         {showBooks && (
   <div className="book-list">
     {books.map((book) => (

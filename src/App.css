@@ -4,26 +4,6 @@
   padding: 20px;
 }
 
-.search-container {
-  display: flex;
-  margin-bottom: 20px;
-}
-
-.search-container input {
-  flex-grow: 1;
-  padding: 10px;
-  font-size: 16px;
-}
-
-.search-container button {
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
 .book-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -77,11 +57,47 @@
   padding: 20px;
 }
 
-.categories {
+.categories-section {
+  padding: 20px;
+}
+
+.categories-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.categories-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.category-button {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: #fff;
+  border: none;
+  border-radius: 30px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-button:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.category-icon {
+  margin-right: 8px;
+  color: #0066FF;
+}
+
+.category-button span {
+  font-size: 16px;
+  color: #333;
 }
 
 .book-list {
@@ -153,15 +169,6 @@ button:hover {
 .summary-card h2 {
   margin-bottom: 10px;
 }
-
-
-
-/* .search-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-} */
 
 .back-button-container {
   /* text-align: center; */
@@ -270,4 +277,46 @@ button:hover {
 
 .chapter-navigation {
   margin-top: 20px;
+}
+.search-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  background-color: white;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.search-container input {
+  flex-grow: 1;
+  padding: 12px 20px;
+  border: none;
+  font-size: 16px;
+  outline: none;
+}
+
+.search-container button {
+  background-color: #0066FF; /* Change this to your preferred blue color */
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-container button:hover {
+  background-color: #0052CC; /* Darker shade for hover state */
+}
+
+.search-container button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.search-wrapper {
+  padding: 20px;
+  display: flex;
+  justify-content: flex-start;
 }
