@@ -10,6 +10,8 @@ import RecommendedBooks from './components/RecommendedBooks';
 import ProfessionBooks from './components/ProfessionBooks';
 import './components/RecommendedBooks.css';
 import './components/ProfessionBooks.css';
+import SignInButton from './components/SignInButton';
+import SignOutButton from './components/SignOutButton';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
@@ -80,13 +82,39 @@ function App() {
   const [isToastVisible, setIsToastVisible] = useState(false);
   const [recommenders, setRecommenders] = useState([]);
   const [professions, setProfessions] = useState([]);
+  const [user, setUser] = useState(null);
   useEffect(() => {
     fetchCategories();
     handleSharedUrl();
     fetchRecommenders();
     fetchProfessions();
+  
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        setUser(session.user);
+        updateUserProfile(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
+  
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [window.location.search]);
-
+  
+  // Add this function outside of the useEffect, but still within your component
+  const updateUserProfile = async (user) => {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        email: user.email,
+        updated_at: new Date(),
+      });
+  
+    if (error) console.error('Error updating user profile:', error);
+  };
   const fetchRecommenders = async () => {
     try {
       const { data, error } = await supabase
@@ -440,27 +468,34 @@ function App() {
   };
  
   return (
-    <div className="App">
-      <header>
-      <div className="search-wrapper">
-        <SearchBar
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          handleSearch={handleSearch}
-          isLoading={isLoading}
-        /></div>
-        {showBackIcon && (
-          <div className="back-button-container">
-            <button className="back-button" onClick={handleBackClick}>
-              ← Back
-            </button>
-            <div className="breadcrumbs">
-              {breadcrumbs.join(' > ')}
+      <div className="App">
+        <header>
+          <div className="top-bar">
+            <h1>Book Summaries</h1>
+            <div className="auth-buttons">
+              {user ? <SignOutButton /> : <SignInButton />}
             </div>
           </div>
-        )}
-      </header>
-      <main>
+          <div className="search-wrapper">
+            <SearchBar
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              handleSearch={handleSearch}
+              isLoading={isLoading}
+            />
+          </div>
+          {showBackIcon && (
+            <div className="back-button-container">
+              <button className="back-button" onClick={handleBackClick}>
+                ← Back
+              </button>
+              <div className="breadcrumbs">
+                {breadcrumbs.join(' > ')}
+              </div>
+            </div>
+          )}
+        </header>
+        <main>
       {showCategories && (
   <>
     <Categories categories={categories} onCategoryClick={fetchBooksByCategory} />
