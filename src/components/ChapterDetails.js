@@ -85,7 +85,7 @@ const ContentSection = ({ type, content, onNavigate }) => {
   }
 };
 
-const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick }) => {
+const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [contentType, setContentType] = useState('biteSize');
   const [chapterData, setChapterData] = useState({});
@@ -228,7 +228,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick }) => {
       </header>
 
       <div className="chapter-info">
-        <h2 className="chapter-number">Chapter {chapterData.number || 'N/A'}</h2>
+        <h2 className="chapter-number">Chapter {chapterNumber || 'N/A'}</h2>
         <h1 className="chapter-title">{chapterTitle || 'Untitled Chapter'}</h1>
       </div>
 

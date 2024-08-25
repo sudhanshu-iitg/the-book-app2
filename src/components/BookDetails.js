@@ -84,6 +84,7 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
           chapter={selectedChapter}
           onBackClick={handleBackToBook}
          chapterTitle={selectedChapter.chapter_title}
+         chapterNumber={selectedChapter.chapter_number}
         />
       </div>
     );

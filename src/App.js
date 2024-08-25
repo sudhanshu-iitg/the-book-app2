@@ -172,11 +172,12 @@ function App() {
     try {
       const { data: bookData, error: bookError } = await supabase
         .from('books')
-        .select('Id')
-        .eq('Title', book.Title)
+        .select('*')
+        .eq('Id', book.Id)
         .single();
       if (bookError) {
         console.error('Error fetching book:', bookError.message);
+        console.error('Book:', book);
         const apiUrl = `https://auto-production.up.railway.app/store?key=true&url=${encodeURIComponent(book.Mirror_2)}&title=${encodeURIComponent(book.Title)}&author=${encodeURIComponent(book.Author || 'Unknown Author')}`;
         await fetch(apiUrl);
         setShowPopup(true);
