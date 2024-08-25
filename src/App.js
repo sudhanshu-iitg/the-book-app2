@@ -4,7 +4,7 @@ import './App.css';
 import PdfViewer from './PdfViewer';
 import { Document, Page, pdfjs } from "react-pdf";
 import { createClient } from "@supabase/supabase-js";
-import { Share2 , Search } from "lucide-react";
+import { Share2 , Search,ArrowLeft } from "lucide-react";
 import Categories from './components/Categories.js';
 import RecommendedBooks from './components/RecommendedBooks';
 import ProfessionBooks from './components/ProfessionBooks';
@@ -12,6 +12,7 @@ import './components/RecommendedBooks.css';
 import './components/ProfessionBooks.css';
 import SignInButton from './components/SignInButton';
 import SignOutButton from './components/SignOutButton';
+import BookDetails from './components/BookDetails';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
@@ -67,25 +68,16 @@ function App() {
   const [books, setBooks] = useState([]);
   const [showCategories, setShowCategories] = useState(true);
   const [showBooks, setShowBooks] = useState(false);
-  const [showBackIcon, setShowBackIcon] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [summary, setSummary] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
-  const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
-  const [breadcrumbs, setBreadcrumbs] = useState(['Categories']);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
-  const [chapterContent, setChapterContent] = useState('');
-  const [activeTab, setActiveTab] = useState('summary');
-  const [sharedUrl, setSharedUrl] = useState('');
-  const [toastMessage, setToastMessage] = useState("");
-  const [isToastVisible, setIsToastVisible] = useState(false);
   const [recommenders, setRecommenders] = useState([]);
   const [professions, setProfessions] = useState([]);
   const [user, setUser] = useState(null);
+  const [showBackButton, setShowBackButton] = useState(false);
   useEffect(() => {
     fetchCategories();
-    handleSharedUrl();
     fetchRecommenders();
     fetchProfessions();
   
@@ -101,7 +93,7 @@ function App() {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [window.location.search]);
+  }, []);
   
   // Add this function outside of the useEffect, but still within your component
   const updateUserProfile = async (user) => {
@@ -152,7 +144,7 @@ function App() {
       setBooks(data);
       setShowCategories(false);
       setShowBooks(true);
-      setShowBackIcon(true);
+      setShowBackButton(true);
       // You might want to update breadcrumbs here as well
     } catch (error) {
       console.error('Error fetching books by recommender:', error.message);
@@ -170,121 +162,10 @@ function App() {
       setBooks(data);
       setShowCategories(false);
       setShowBooks(true);
-      setShowBackIcon(true);
+      setShowBackButton(true);
       // Update breadcrumbs here
     } catch (error) {
       console.error('Error fetching books by profession:', error.message);
-    }
-  };
-  const handleSharedUrl = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookId = urlParams.get('bookId');
-    const chapterTitle = urlParams.get('chapter');
-  
-    console.log('Shared URL parameters:', { bookId, chapterTitle });
-  
-    if (!bookId || !chapterTitle) {
-      console.error('Invalid shared URL: missing bookId or chapterTitle');
-      // setError('Invalid shared URL: missing book ID or chapter title');
-      return;
-    }
-  
-    try {
-      // Fetch book data
-      const { data: bookData, error: bookError } = await supabase
-        .from('books')
-        .select('Title')
-        .eq('Id', bookId)
-        .single();
-  
-      if (bookError) throw bookError;
-      console.log('Book data:', bookData);
-  
-      // Fetch summary data
-      const { data: summaryData, error: summaryError } = await supabase
-        .from('summaries')
-        .select('content')
-        .eq('book_id', bookId)
-        .single();
-  
-      if (summaryError) throw summaryError;
-      console.log('Summary data:', summaryData);
-  
-      // Fetch chapter content
-      const { data: chapterData, error: chapterError } = await supabase
-        .from('chapter_contents')
-        .select('content')
-        .eq('book_id', bookId)
-        .eq('chapter_title', chapterTitle)
-        .single();
-  
-      if (chapterError) throw chapterError;
-      console.log('Chapter data:', chapterData);
-  
-      if (summaryData && summaryData.content && chapterData) {
-        let parsedContent = JSON.parse(summaryData.content.trim());
-        setSummary(parsedContent);
-        setSelectedChapter(chapterTitle);
-        setCurrentChapterIndex(Object.keys(parsedContent).indexOf(chapterTitle));
-        setBreadcrumbs(['Categories', bookData.title, chapterTitle]);
-        setShowCategories(false);
-        setShowBooks(false);
-        setShowBackIcon(true);
-        setSelectedBookId(bookId);
-        setChapterContent(chapterData.content);
-        setActiveTab('summary');
-      } else {
-        throw new Error('Missing data in the response');
-      }
-    } catch (error) {
-      console.error('Error handling shared URL:', error.message);
-      // setError(`Error loading shared content: ${error.message}`);
-    }
-  };
-  const showToast = (message) => {
-    setToastMessage(message);
-    setIsToastVisible(true);
-  };
-  
-  const hideToast = () => {
-    setIsToastVisible(false);
-  };
-  const generateShareableUrl = () => {
-    if (!selectedBookId || !selectedChapter) {
-      console.error('Cannot generate shareable URL: missing bookId or chapter');
-      // setError('Cannot generate shareable URL: missing book ID or chapter');
-      return;
-    }
-    const baseUrl = window.location.origin;
-    const shareUrl = `${baseUrl}/?bookId=${selectedBookId}&chapter=${encodeURIComponent(selectedChapter)}`;
-    setSharedUrl(shareUrl);
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      showToast("Link copied to clipboard!");
-    }).catch((err) => {
-      console.error('Failed to copy link:', err);
-      showToast("Failed to copy link. Please try again.");
-    });
-    console.log('Generated shareable URL:', shareUrl);
-  };
-
-  const fetchChapterContent = async (bookId, chapterTitle) => {
-    try {
-      const { data, error } = await supabase
-        .from('chapter_contents')
-        .select('content')
-        .eq('book_id', bookId)
-        .eq('chapter_title', chapterTitle)
-        .single();
-
-      if (error) {
-        console.error('Error fetching chapter content:', error.message, { bookId, chapterTitle });
-        throw error;
-      }
-
-      setChapterContent(data.content);
-    } catch (error) {
-      console.error('Error fetching chapter content:', error.message);
-      setChapterContent('');
     }
   };
   const handleBookClick = async (book) => {
@@ -301,29 +182,12 @@ function App() {
         setShowPopup(true);
         return;
       }
-      const { data, error } = await supabase
-        .from('summaries')
-        .select('content')
-        .eq('book_id', bookData.Id)
-        .single();
-      if (error) throw error;
-  
-      if (data && data.content) {
-        let parsedContent = JSON.parse(data.content.trim());
-        const firstChapter = Object.keys(parsedContent)[0];
-        setSummary(parsedContent);
-        setSelectedChapter(firstChapter);
-        setCurrentChapterIndex(0);
-        setBreadcrumbs(prev => [...prev, book.Title, firstChapter]);
         setShowBooks(false);
-        setShowBackIcon(true);
+        setShowBackButton(true);
         setSelectedBookId(book.Id);
-        
-        await fetchChapterContent(book.Id, firstChapter);
       } 
-    } catch (error) {
-      console.error('Error fetching summary:', error.message);
-      setShowPopup(true);
+   catch (error) {
+      console.error('Error fetching book:', error.message);
     }
   };
   const Popup = ({ onClose, bookTitle }) => {
@@ -337,34 +201,6 @@ function App() {
         </div>
       </div>
     );
-  };
-  const handleNextChapter = async () => {
-    const chapters = Object.keys(summary);
-    if (currentChapterIndex < chapters.length - 1) {
-      const nextIndex = currentChapterIndex + 1;
-      const nextChapter = chapters[nextIndex];
-      setCurrentChapterIndex(nextIndex);
-      setSelectedChapter(nextChapter);
-      setBreadcrumbs(prev => [...prev.slice(0, -1), nextChapter]);
-      await fetchChapterContent(selectedBookId, nextChapter);
-    }
-  };
-  
-  const handlePreviousChapter = async () => {
-    if (currentChapterIndex > 0) {
-      const prevIndex = currentChapterIndex - 1;
-      const prevChapter = Object.keys(summary)[prevIndex];
-      setCurrentChapterIndex(prevIndex);
-      setSelectedChapter(prevChapter);
-      setBreadcrumbs(prev => [...prev.slice(0, -1), prevChapter]);
-      await fetchChapterContent(selectedBookId, prevChapter);
-    }
-  };
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    if (tab === 'fullChapter' && !chapterContent) {
-      fetchChapterContent(selectedBookId, selectedChapter);
-    }
   };
   const fetchCategories = async () => {
     try {
@@ -399,11 +235,11 @@ function App() {
 
   const fetchBooksByCategory = async (categoryId) => {
     try {
-      const { data: categoryData } = await supabase
-        .from('categories')
-        .select('name')
-        .eq('id', categoryId)
-        .single();
+      // const { data: categoryData } = await supabase
+      //   .from('categories')
+      //   .select('name')
+      //   .eq('id', categoryId)
+      //   .single();
   
       const { data: booksData, error } = await supabase
         .from('books')
@@ -413,27 +249,30 @@ function App() {
       if (error) throw error;
   
       setBooks(booksData);
-      setBreadcrumbs(['Categories', categoryData.name]);
       setShowCategories(false);
       setShowBooks(true);
-      setShowBackIcon(true);
+      setShowBackButton(true);
     } catch (error) {
       console.error('Error fetching books:', error);
     }
   };
   const handleBackClick = () => {
-    if (showBooks) {
+    if (selectedChapter) {
+      // If viewing chapter details, go back to book details
+      setSelectedChapter(null);
+    } else if (selectedBookId) {
+      // If viewing book details, go back to book list
+      setSelectedBookId(null);
+      setShowBooks(true);
+      setShowCategories(false);
+    } else if (showBooks) {
+      // If viewing book list, go back to categories
       setShowBooks(false);
       setShowCategories(true);
-      setBreadcrumbs(['Categories']);
-      setShowBackIcon(false);
-    } else if (summary) {
-      setShowBooks(true);
-      setSummary(null);
-      setSelectedChapter(null);
-      setBreadcrumbs((prev) => prev.slice(0, -1)); // Remove the book title
-      setShowBackIcon(true);
     }
+  
+    // Update back button visibility
+    setShowBackButton(showBooks || selectedBookId || selectedChapter);
   };
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -453,8 +292,7 @@ function App() {
         setBooks(data.docs.slice(0, 10));
         setShowCategories(false);
         setShowBooks(true);
-        setShowBackIcon(true);
-        setBreadcrumbs(['Search Results']);
+        setShowBackButton(true);
       } else {
         console.error('Unexpected data structure:', data);
         alert('No results found or unexpected data structure');
@@ -470,31 +308,27 @@ function App() {
   return (
       <div className="App">
         <header>
-          <div className="top-bar">
-            <h1>Book Summaries</h1>
-            <div className="auth-buttons">
-              {user ? <SignOutButton /> : <SignInButton />}
-            </div>
-          </div>
-          <div className="search-wrapper">
-            <SearchBar
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              handleSearch={handleSearch}
-              isLoading={isLoading}
-            />
-          </div>
-          {showBackIcon && (
-            <div className="back-button-container">
-              <button className="back-button" onClick={handleBackClick}>
-                ← Back
-              </button>
-              <div className="breadcrumbs">
-                {breadcrumbs.join(' > ')}
-              </div>
-            </div>
+  <div className="top-nav">
+    <h1>The Book App</h1>
+    <div className="auth-buttons">
+      {user ? <SignOutButton /> : <SignInButton />}
+    </div>
+  </div>
+  <div className="search-wrapper">
+  {showBackButton && (
+            <button className="back-button" onClick={handleBackClick}>
+              <ArrowLeft size={20} />
+            </button>
           )}
-        </header>
+    <SearchBar
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      handleSearch={handleSearch}
+      isLoading={isLoading}
+    />
+  </div>
+  
+</header>
         <main>
       {showCategories && (
   <>
@@ -537,75 +371,19 @@ function App() {
     ))}
   </div>
 )}
-                {summary && selectedChapter && (
-          <div className="summary-card">
-            <h2>{selectedChapter}</h2>
-            <ul className="nav nav-tabs mb-3">
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${activeTab === 'summary' ? 'active' : ''}`}
-                  onClick={() => handleTabChange('summary')}
-                >
-                  Summary
-                </button>
-              </li>
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${activeTab === 'fullChapter' ? 'active' : ''}`}
-                  onClick={() => handleTabChange('fullChapter')}
-                >
-                  Full Chapter
-                </button>
-              </li>
-            </ul>
-            <div className="chapter-content">
-              <ReactMarkdown>
-                {activeTab === 'summary' ? summary[selectedChapter] : chapterContent}
-              </ReactMarkdown>
-            </div>
-            <div className="chapter-navigation mt-3">
-  <div className="d-flex justify-content-between align-items-center">
-    <button 
-      className="btn btn-secondary"
-      onClick={handlePreviousChapter} 
-      disabled={currentChapterIndex === 0}
-    >
-      Previous Chapter
-    </button>
-    <div className="d-flex align-items-center">
-      <button 
-        className="btn btn-secondary me-2"
-        onClick={handleNextChapter}
-        disabled={currentChapterIndex === Object.keys(summary).length - 1}
-      >
-        Next Chapter
-      </button>
-      <button
-  className="btn btn-outline-secondary"
-  onClick={generateShareableUrl}
-  title="Share this chapter"
->
-  <Share2 />
-</button>
-    </div>
-  </div>
-</div>
-          </div>  
-          
-        )}
+                {selectedBookId && (
+  <BookDetails
+    bookId={selectedBookId}
+    onBackClick={handleBackClick}
+  />
+)}
       </main>
       {showPopup && (
   <Popup 
     onClose={() => setShowPopup(false)} 
     bookTitle={books.find(b => b.id === selectedBookId)?.title || 'Selected book'}
   />
-)}
-    <Toast 
-  message={toastMessage} 
-  isVisible={isToastVisible} 
-  onClose={hideToast} 
-/>
-    </div>
+)}</div>
     
   );
 }

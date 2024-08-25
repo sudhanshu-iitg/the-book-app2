@@ -15,20 +15,34 @@
   padding: 15px;
   border-radius: 5px;
 }
-.top-bar {
+.top-nav {
+  background-color: white;
+  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  background-color: #f0f0f0;
-  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.top-bar h1 {
+.top-nav h1 {
   margin: 0;
-  font-size: 1.5em;
+  color: #333;
+  font-size: 24px;
 }
 
+.top-nav .auth-buttons button {
+  background-color: black;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.top-nav .auth-buttons button:hover {
+  background-color: #333;
+}
 .auth-buttons {
   display: flex;
   gap: 10px;
