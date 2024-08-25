@@ -57,7 +57,7 @@ const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, isLoading }) => {
         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
       />
       <button onClick={handleSearch} disabled={isLoading}>
-        <Search size={20} color="white" />
+        <Search size={20} color="#0d6efd" />
       </button>
     </div>
   );
@@ -234,13 +234,7 @@ function App() {
   };
 
   const fetchBooksByCategory = async (categoryId) => {
-    try {
-      // const { data: categoryData } = await supabase
-      //   .from('categories')
-      //   .select('name')
-      //   .eq('id', categoryId)
-      //   .single();
-  
+    try {  
       const { data: booksData, error } = await supabase
         .from('books')
         .select('*')
@@ -333,13 +327,14 @@ function App() {
       {showCategories && (
   <>
     <Categories categories={categories} onCategoryClick={fetchBooksByCategory} />
-    <RecommendedBooks 
-      recommenders={recommenders} 
-      onRecommenderClick={fetchBooksByRecommender} 
-    />
+    
     <ProfessionBooks 
       professions={professions} 
       onProfessionClick={fetchBooksByProfession} 
+    />
+    <RecommendedBooks 
+      recommenders={recommenders} 
+      onRecommenderClick={fetchBooksByRecommender} 
     />
   </>
 )}
@@ -356,9 +351,9 @@ function App() {
         )}
         <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
           <div>
-            <h3 className="book-title">{book.Title}</h3>
-            <p className="book-author">{book.Author ? book.Author : 'Unknown Author'}</p>
-            <p className="book-size">{book.Size ? book.Size : ' - '}</p>
+            <h3 className="book-title-list">{book.Title}</h3>
+            <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'}</p>
+            <p className="book-size-list">{book.Size ? book.Size : ' - '}</p>
           </div>
           <button 
             className="book-action"

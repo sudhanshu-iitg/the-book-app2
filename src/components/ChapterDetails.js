@@ -106,7 +106,6 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick }) => {
           const { data: summaryData, error: summaryError } = await supabase
             .from('summaries')
             .select('content')
-            .eq('book_id', bookId)
             .eq('chapter_id', chapterId)
             .single();
           if (summaryError) {

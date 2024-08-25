@@ -43,7 +43,14 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setChapters(data);
+      
+      // Assign chapter numbers based on the sorted order
+      const numberedChapters = data.map((chapter, index) => ({
+        ...chapter,
+        chapter_number: index + 1
+      }));
+      
+      setChapters(numberedChapters);
     } catch (error) {
       console.error('Error fetching chapters:', error.message);
     }
@@ -56,22 +63,6 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
 
   const handleBackToBook = () => {
     setSelectedChapter(null);
-  };
-
-  const handleNextChapter = () => {
-    if (currentChapterIndex < chapters.length - 1) {
-      const nextIndex = currentChapterIndex + 1;
-      setCurrentChapterIndex(nextIndex);
-      setSelectedChapter(chapters[nextIndex]);
-    }
-  };
-
-  const handlePreviousChapter = () => {
-    if (currentChapterIndex > 0) {
-      const prevIndex = currentChapterIndex - 1;
-      setCurrentChapterIndex(prevIndex);
-      setSelectedChapter(chapters[prevIndex]);
-    }
   };
 
   const getChapterClassName = (chapter) => {
@@ -137,7 +128,7 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
             }}
           >
             <span className={`chapter-number ${chapter.chapter_number === currentChapterIndex + 1 ? 'text-blue-500' : 'text-gray-500'}`}>
-              {/* {chapter.chapter_number.toString().padStart(2, '0')} */}
+              {chapter.chapter_number.toString().padStart(2, '0')}
             </span>
             <span className={`chapter-title-listing ${chapter.chapter_number === currentChapterIndex + 1 ? 'font-semibold' : ''}`}>
               {chapter.chapter_title}
@@ -147,22 +138,6 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
         ))}
       </div>
       
-      <div className="chapter-navigation">
-        <button 
-          className="nav-button"
-          onClick={handlePreviousChapter}
-          disabled={currentChapterIndex === 0}
-        >
-          Previous Chapter
-        </button>
-        <button 
-          className="nav-button"
-          onClick={handleNextChapter}
-          disabled={currentChapterIndex === chapters.length - 1}
-        >
-          Next Chapter
-        </button>
-      </div>
     </div>
   );
 };
