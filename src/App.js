@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import ReactMarkdown from 'react-markdown';
 import './App.css';
-import PdfViewer from './PdfViewer';
-import { Document, Page, pdfjs } from "react-pdf";
+import {  pdfjs } from "react-pdf";
 import { createClient } from "@supabase/supabase-js";
-import { Share2 , Search,ArrowLeft } from "lucide-react";
+import {  Search,ArrowLeft } from "lucide-react";
 import Categories from './components/Categories.js';
 import RecommendedBooks from './components/RecommendedBooks';
 import ProfessionBooks from './components/ProfessionBooks';
@@ -69,7 +67,7 @@ function App() {
   const [showCategories, setShowCategories] = useState(true);
   const [showBooks, setShowBooks] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [selectedChapter, setSelectedChapter] = useState('');
+  const [selectedChapter, setSelectedChapter] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
   const [recommenders, setRecommenders] = useState([]);
@@ -253,13 +251,14 @@ function App() {
   };
   const handleBackClick = () => {
     if (selectedChapter) {
-      // If viewing chapter details, go back to book details
-      setSelectedChapter(null);
-    } else if (selectedBookId) {
-      // If viewing book details, go back to book list
+      // If viewing chapter details, go   back to book details
+      setSelectedChapter(null); 
+      return null
+    } else if (selectedBookId) { 
+      // If viewing book details, go back to book list 
       setSelectedBookId(null);
-      setShowBooks(true);
-      setShowCategories(false);
+      setShowBooks(true); 
+      setShowCategories(false); 
     } else if (showBooks) {
       // If viewing book list, go back to categories
       setShowBooks(false);
@@ -267,7 +266,7 @@ function App() {
     }
   
     // Update back button visibility
-    setShowBackButton(showBooks || selectedBookId || selectedChapter);
+    setShowBackButton( selectedBookId || selectedChapter);
   };
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -371,6 +370,9 @@ function App() {
   <BookDetails
     bookId={selectedBookId}
     onBackClick={handleBackClick}
+    chapterId={selectedChapter}
+    showChapter={selectedChapter}
+    setShowChapter={setSelectedChapter}
   />
 )}
       </main>

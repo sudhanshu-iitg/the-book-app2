@@ -12,7 +12,12 @@
   margin-bottom: 24px;
 }
 
-.back-button, .menu-button {
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.menu-button {
   padding: 8px;
   background: none;
   border: none;
@@ -21,39 +26,53 @@
   color: #333;
 }
 
-.back-button span {
-  margin-left: 8px;
-}
-.back-button:hover {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-color: white;
-  color: #333;
-  fill: #333;
-}
-
 .menu-button:hover {
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background-color: white;
 }
 
-.chapter-info {
-  text-align: left;
-  margin-bottom: 24px;
-}
-
 .chapter-number {
   font-size: 18px;
   color: #666;
-  align-content: left;
-  margin-left: 0;
+  margin-left: 16px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: black;
+  font-size: 14px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+.nav-button:hover:not(:disabled) {
+  color: #024c71;
+}
+
+.nav-button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.nav-button svg {
+  width: 14px;
+  height: 14px;
 }
 
 .chapter-title {
   font-size: 24px;
   color: #333;
-  margin: 0;
+  margin: 0 0 24px 0;
 }
 
 .content-wrapper {

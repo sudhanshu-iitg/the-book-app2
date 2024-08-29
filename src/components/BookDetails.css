@@ -67,7 +67,7 @@
 }
 
 .primary-button {
-  background-color: #007bff;
+  background-color: black;
   color: white;
 }
 
@@ -77,8 +77,8 @@
 
 .secondary-button {
   background-color: white;
-  color: #007bff;
-  border: 1px solid #007bff;
+  color: black;
+  border: 1px solid black;
 }
 
 .secondary-button:hover {
@@ -99,7 +99,7 @@
 
 .toc-divider {
   height: 3px;
-  background-color: #007bff;
+  background-color: black;
   width: 50px;
   margin-bottom: 20px;
 }

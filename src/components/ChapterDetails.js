@@ -85,86 +85,89 @@ const ContentSection = ({ type, content, onNavigate }) => {
   }
 };
 
-const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber}) => {
+const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber,totalChapters}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [contentType, setContentType] = useState('biteSize');
   const [chapterData, setChapterData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currentChapter, setCurrentChapter] = useState({
+    id: chapterId,
+    title: chapterTitle,
+    number: chapterNumber
+  });
 
+  const fetchChapter = async (direction) => {
+    setLoading(true);
+    setError(null);
+
+    const targetChapterNumber = direction === 'next' ? currentChapter.number + 1 : currentChapter.number - 1;
+
+    try {
+      const { data, error } = await supabase
+        .from('chapter_contents')
+        .select('id, chapter_title, chapter_number, content')
+        .eq('book_id', bookId)
+        .eq('chapter_number', targetChapterNumber)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setCurrentChapter({
+          id: data.id,
+          title: data.chapter_title,
+          number: data.chapter_number
+        });
+        setChapterData({
+          fullContent: data.content,
+          biteSize: null,
+          summary: null
+        });
+        setContentType('biteSize'); // Reset to default view
+      } else {
+        setError(`No ${direction} chapter available.`);
+      }
+    } catch (error) {
+      console.error(`Error fetching ${direction} chapter:`, error);
+      setError(`Failed to load ${direction} chapter. Please try again later.`);
+    } finally {
+      setLoading(false);
+    }
+  };
   const fetchContentData = async (type) => {
     setLoading(true);
     setError(null);
-  
+
     try {
       let data;
-      const fixedBookId = 15;
-      const fixedChapterId = 87;
-  
+
       switch (type) {
         case 'summary':
           const { data: summaryData, error: summaryError } = await supabase
             .from('summaries')
             .select('content')
-            .eq('chapter_id', chapterId)
+            .eq('chapter_id', currentChapter.id)
             .single();
-          if (summaryError) {
-            console.error('Error fetching summary, using fixed IDs:', summaryError);
-            const { data: fixedSummaryData, error: fixedSummaryError } = await supabase
-              .from('summaries')
-              .select('content')
-              .eq('book_id', fixedBookId)
-              .eq('chapter_id', fixedChapterId)
-              .single();
-            if (fixedSummaryError) throw fixedSummaryError;
-            data = fixedSummaryData.content;
-          } else {
-            data = summaryData.content;
-          }
+          if (summaryError) throw summaryError;
+          data = summaryData.content;
           break;
         case 'biteSize':
           const { data: biteSizeData, error: biteSizeError } = await supabase
             .from('cards')
             .select('*')
-            .eq('chapter_id', chapterId);
-          if (biteSizeError) {
-            console.error('Error fetching bite-size content, using fixed IDs:', biteSizeError);
-            console.error('Book ID:', bookId, 'Chapter ID:', chapterId);
-            const { data: fixedBiteSizeData, error: fixedBiteSizeError } = await supabase
-              .from('cards')
-              .select('*')
-              .eq('chapter_id', fixedChapterId);
-            if (fixedBiteSizeError) throw fixedBiteSizeError;
-            data = fixedBiteSizeData;
-          } else {
-            data = biteSizeData;
-          }
+            .eq('chapter_id', currentChapter.id);
+          if (biteSizeError) throw biteSizeError;
+          data = biteSizeData;
           break;
         case 'fullContent':
-          const { data: fullContentData, error: fullContentError } = await supabase
-            .from('chapter_contents')
-            .select('content')
-            .eq('book_id', bookId)
-            .eq('id', chapterId)
-            .single();
-          if (fullContentError) {
-            console.error('Error fetching full content, using fixed IDs:', fullContentError);
-            const { data: fixedFullContentData, error: fixedFullContentError } = await supabase
-              .from('chapter_contents')
-              .select('content')
-              .eq('book_id', fixedBookId)
-              .eq('id', fixedChapterId)
-              .single();
-            if (fixedFullContentError) throw fixedFullContentError;
-            data = fixedFullContentData.content;
-          } else {
-            data = fullContentData.content;
-          }
+          // We already have full content from fetchChapter, so just use that
+          data = chapterData.fullContent;
           break;
         default:
           data = null;
       }
-  
+
       setChapterData(prevData => ({
         ...prevData,
         [type]: data
@@ -180,7 +183,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
     if (contentType && !chapterData[contentType]) {
       fetchContentData(contentType);
     }
-  }, [contentType, bookId, chapterId]);
+  }, [contentType, currentChapter.id]);
 
 
   const menuItems = [
@@ -222,14 +225,34 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
   return (
     <div className="chapter-details">
       <header className="chapter-header">
-        <button onClick={toggleMenu} className="menu-button">
-          {menuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="header-left">
+          <button onClick={toggleMenu} className="menu-button">
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <h2 className="chapter-number">Chapter {currentChapter.number || 'N/A'}</h2>
+        </div>
+        <div className="header-right">
+          <button 
+            onClick={() => fetchChapter('prev')} 
+            disabled={currentChapter.number <= 1 || loading}
+            className="nav-button prev-chapter"
+          >
+            <ChevronLeft size={18} />
+            Previous Chapter
+          </button>
+          <button 
+            onClick={() => fetchChapter('next')} 
+            disabled={currentChapter.number >= totalChapters || loading}
+            className="nav-button next-chapter"
+          >
+            Next Chapter
+            <ChevronRight size={18} />
+          </button>
+        </div>
       </header>
 
       <div className="chapter-info">
-        <h2 className="chapter-number">Chapter {chapterNumber || 'N/A'}</h2>
-        <h1 className="chapter-title">{chapterTitle || 'Untitled Chapter'}</h1>
+        <h1 className="chapter-title">{currentChapter.title || 'Untitled Chapter'}</h1>
       </div>
 
       <div className="content-wrapper">
@@ -253,6 +276,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
             content={chapterData[contentType]}
           />
         </div>
+        
       </div>
     </div>
   );

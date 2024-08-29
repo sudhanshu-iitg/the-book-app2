@@ -8,10 +8,10 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
+const BookDetails = ({ bookId, onBackClick, generateShareableUrl,showChapter, setShowChapter}) => {
   const [book, setBook] = useState(null);
   const [chapters, setChapters] = useState([]);
-  const [selectedChapter, setSelectedChapter] = useState(null);
+  const [totalChapters, setTotalChapters] = useState([]);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
 
   useEffect(() => {
@@ -44,6 +44,7 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
 
       if (error) throw error;
       
+      const totalChapters = data.length;
       // Assign chapter numbers based on the sorted order
       const numberedChapters = data.map((chapter, index) => ({
         ...chapter,
@@ -51,18 +52,19 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
       }));
       
       setChapters(numberedChapters);
+      setTotalChapters(totalChapters);
     } catch (error) {
       console.error('Error fetching chapters:', error.message);
     }
   };
 
   const handleChapterClick = (chapter) => {
-    setSelectedChapter(chapter);
+    setShowChapter(chapter);
     setCurrentChapterIndex(chapter.chapter_number - 1);
   };
 
   const handleBackToBook = () => {
-    setSelectedChapter(null);
+    setShowChapter(null);
   };
 
   const getChapterClassName = (chapter) => {
@@ -75,16 +77,16 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
     return <div>Loading...</div>;
   }
 
-  if (selectedChapter) {
+  if (showChapter) {
     return ( 
       <div className="book-details-container">
         <ChapterDetails 
-          bookId={selectedChapter.book_id}
-          chapterId={selectedChapter.id}
-          chapter={selectedChapter}
+          bookId={showChapter.book_id}
+          chapterId={showChapter.id}
           onBackClick={handleBackToBook}
-         chapterTitle={selectedChapter.chapter_title}
-         chapterNumber={selectedChapter.chapter_number}
+         chapterTitle={showChapter.chapter_title}
+         chapterNumber={showChapter.chapter_number}
+         totalChapters= {totalChapters}
         />
       </div>
     );
@@ -124,7 +126,6 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl }) => {
             key={chapter.chapter_number}
             className={getChapterClassName(chapter)}
             onClick={() => {
-              console.log(`Clicked on chapter ${JSON.stringify(chapter) }: ${chapter.chapter_title}`);
               handleChapterClick(chapter);
             }}
           >
