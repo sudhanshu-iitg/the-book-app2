@@ -8,10 +8,10 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BookDetails = ({ bookId, onBackClick, generateShareableUrl,showChapter, setShowChapter}) => {
+const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, setShowChapter }) => {
   const [book, setBook] = useState(null);
   const [chapters, setChapters] = useState([]);
-  const [totalChapters, setTotalChapters] = useState([]);
+  const [totalChapters, setTotalChapters] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
 
   useEffect(() => {
@@ -45,7 +45,6 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl,showChapter, se
       if (error) throw error;
       
       const totalChapters = data.length;
-      // Assign chapter numbers based on the sorted order
       const numberedChapters = data.map((chapter, index) => ({
         ...chapter,
         chapter_number: index + 1
@@ -68,7 +67,7 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl,showChapter, se
   };
 
   const getChapterClassName = (chapter) => {
-    const baseClass = "p-4 rounded-lg transition-colors duration-200 cursor-pointer ";
+    const baseClass = "rounded-lg transition-colors duration-200 cursor-pointer ";
     const activeClass = chapter.chapter_number === currentChapterIndex + 1 ? "bg-blue-100 border-l-4 border-blue-500 " : "hover:bg-gray-100 ";
     return baseClass + activeClass + "border-b last:border-b-0";
   };
@@ -84,9 +83,9 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl,showChapter, se
           bookId={showChapter.book_id}
           chapterId={showChapter.id}
           onBackClick={handleBackToBook}
-         chapterTitle={showChapter.chapter_title}
-         chapterNumber={showChapter.chapter_number}
-         totalChapters= {totalChapters}
+          chapterTitle={showChapter.chapter_title}
+          chapterNumber={showChapter.chapter_number}
+          totalChapters={totalChapters}
         />
       </div>
     );
@@ -102,14 +101,14 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl,showChapter, se
           <h1 className="book-title">{book.Title}</h1>
           <p className="book-author">by {book.Author}</p>
           <div className="book-actions">
-            <button className="action-button primary-button">
-              <Book size={18} /> Start Reading
+            <button className="action-button primary-button" onClick={() => handleChapterClick(chapters[0])}>
+              <Book size={16} /> Start Reading
             </button>
             <button className="action-button secondary-button">
-              <Bookmark size={18} /> Add to Library
+              <Bookmark size={16} /> Add to Library
             </button>
             <button className="action-button secondary-button" onClick={generateShareableUrl}>
-              <Share2 size={18} /> Share
+              <Share2 size={16} /> Share
             </button>
           </div>
         </div>
@@ -125,9 +124,7 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl,showChapter, se
           <div 
             key={chapter.chapter_number}
             className={getChapterClassName(chapter)}
-            onClick={() => {
-              handleChapterClick(chapter);
-            }}
+            onClick={() => handleChapterClick(chapter)}
           >
             <span className={`chapter-number ${chapter.chapter_number === currentChapterIndex + 1 ? 'text-blue-500' : 'text-gray-500'}`}>
               {chapter.chapter_number.toString().padStart(2, '0')}
@@ -135,11 +132,10 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl,showChapter, se
             <span className={`chapter-title-listing ${chapter.chapter_number === currentChapterIndex + 1 ? 'font-semibold' : ''}`}>
               {chapter.chapter_title}
             </span>
-            <ChevronRight className="chapter-arrow" />
+            <ChevronRight className="chapter-arrow" size={16} />
           </div>
         ))}
       </div>
-      
     </div>
   );
 };
