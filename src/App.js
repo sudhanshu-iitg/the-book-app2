@@ -353,23 +353,25 @@ function App() {
     {books.map((book) => (
       <div key={book.Id} className="book-item">
         {book.coverUrl && (
-          <img 
-            src={book.coverUrl} 
-            alt={book.Title} 
-            className="book-cover"
-          />
+          <div className="book-cover-wrapper">
+            <img 
+              src={book.coverUrl} 
+              alt={book.Title} 
+              className="book-cover"
+              style={{ display: 'block', margin: 'auto' }}
+            />
+          </div>
         )}
         <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
           <div>
             <h3 className="book-title-list">{book.Title}</h3>
             <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'}</p>
-            <p className="book-size-list">{book.Size ? book.Size : ' - '}</p>
           </div>
           <button 
             className="book-action"
             onClick={() => handleBookClick(book)}
           >
-            View Details
+            Start Reading
           </button>
         </div>
       </div>
