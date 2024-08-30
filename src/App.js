@@ -74,11 +74,20 @@ function App() {
   const [professions, setProfessions] = useState([]);
   const [user, setUser] = useState(null);
   const [showBackButton, setShowBackButton] = useState(false);
+  
   useEffect(() => {
     fetchCategories();
     fetchRecommenders();
     fetchProfessions();
-  
+    const handleAuthRedirect = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) console.error('Error getting session:', error);
+      if (session) {
+        setUser(session.user);
+        updateUserProfile(session.user);
+      }
+    };
+    handleAuthRedirect();
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
         setUser(session.user);
@@ -87,6 +96,7 @@ function App() {
         setUser(null);
       }
     });
+
   
     return () => {
       authListener.subscription.unsubscribe();
