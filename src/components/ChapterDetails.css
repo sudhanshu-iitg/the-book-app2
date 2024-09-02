@@ -56,11 +56,13 @@
 }
 
 .nav-button:hover:not(:disabled) {
-  color: #024c71;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: white;
 }
 
 .nav-button:disabled {
-  color: #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: white;
   cursor: not-allowed;
 }
 
@@ -138,7 +140,55 @@
   color: #666;
   font-weight: normal;
 }
+.content-card.bite-size {
+  overflow: hidden;
+}
 
+.card-content-wrapper {
+  transition: transform 0.3s ease-out;
+}
+
+.card-content-wrapper.left {
+  transform: translateX(-100%);
+}
+
+.card-content-wrapper.right {
+  transform: translateX(100%);
+}
+
+/* Add these new styles for the swipe animation */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes slideOutLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+.card-content-wrapper {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+
+.card-content-wrapper.left {
+  animation-name: slideOutLeft;
+}
+
+.card-content-wrapper.right {
+  animation-name: slideOutRight;
+}
 .navigation-buttons {
   display: flex;
   gap: 8px;
@@ -160,8 +210,8 @@
 
 .nav-button-prev:hover:not(.disabled),
 .nav-button-next:hover:not(.disabled) {
-  background-color: #0369a1;
-  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: white;
 }
 
 .nav-button-prev.disabled,

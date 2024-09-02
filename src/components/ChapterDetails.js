@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import { Menu, X, BookOpen, FileText, MessageSquare, CreditCard, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
 import { createClient } from "@supabase/supabase-js";
 import './ChapterDetails.css';
+import { useSwipeable } from 'react-swipeable';
 
 const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
@@ -9,29 +10,39 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const ContentSection = ({ type, content, onNavigate }) => {
   const [currentCard, setCurrentCard] = useState(0);
-
+  const [slideDirection, setSlideDirection] = useState(null);
   const navigateCards = (direction) => {
     if (!Array.isArray(content)) return;
     setCurrentCard(prev => {
       if (direction === 'next' && prev < content.length - 1) {
+        setSlideDirection('left');
         return prev + 1;
       } else if (direction === 'prev' && prev > 0) {
+        setSlideDirection('right');
         return prev - 1;
       }
       return prev;
     });
   };
-
+  const handlers = useSwipeable({
+    onSwipedLeft: () => navigateCards('next'),
+    onSwipedRight: () => navigateCards('prev'),
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true
+  });
   const isFirstCard = currentCard === 0;
   const isLastCard = Array.isArray(content) && currentCard === content.length - 1;
-
+  useEffect(() => {
+    const timer = setTimeout(() => setSlideDirection(null), 300);
+    return () => clearTimeout(timer);
+  }, [currentCard]);
   switch (type) {
     case 'biteSize':
       if (!Array.isArray(content) || content.length === 0) {
         return <div className="content-card">No bite-size content available.</div>;
       }
       return (
-        <div className="content-card bite-size">
+        <div className="content-card bite-size" {...handlers}>
           <div className="card-header">
             <h3 className="card-number">Card {currentCard + 1} of {content.length}</h3>
             <div className="navigation-buttons">
@@ -53,9 +64,11 @@ const ContentSection = ({ type, content, onNavigate }) => {
               </button>
             </div>
           </div>
-          <h2 className="card-heading">{content[currentCard].card_heading}</h2>
-          <div className="bite-size-content">
-            <p>{content[currentCard].card_content}</p>
+          <div className={`card-content-wrapper ${slideDirection}`}>
+            <h2 className="card-heading">{content[currentCard].card_heading}</h2>
+            <div className="bite-size-content">
+              <p>{content[currentCard].card_content}</p>
+            </div>
           </div>
         </div>
       );
@@ -96,6 +109,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
     title: chapterTitle,
     number: chapterNumber
   });
+  const sidebarRef = useRef(null);
 
   const fetchChapter = async (direction) => {
     setLoading(true);
@@ -133,6 +147,11 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
       setError(`Failed to load ${direction} chapter. Please try again later.`);
     } finally {
       setLoading(false);
+    }
+  };
+  const handleContentClick = (event) => {
+    if (menuOpen && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+      setMenuOpen(false);
     }
   };
   const fetchContentData = async (type) => {
@@ -257,7 +276,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
 
       <div className="content-wrapper">
         {menuOpen && (
-          <div className="sidebar">
+          <div className="sidebar" ref={sidebarRef}>
             {menuItems.map((item) => (
               <button
                 key={item.type}
@@ -270,7 +289,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
             ))}
           </div>
         )}
-        <div className="main-content">
+        <div className="main-content" onClick={handleContentClick}>
           <ContentSection
             type={contentType}
             content={chapterData[contentType]}
