@@ -8,7 +8,7 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const ContentSection = ({ type, content, onNavigate }) => {
+const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter }) => {
   const [currentCard, setCurrentCard] = useState(0);
   const [slideDirection, setSlideDirection] = useState(null);
   const navigateCards = (direction) => {
@@ -54,14 +54,24 @@ const ContentSection = ({ type, content, onNavigate }) => {
                 <ChevronLeft size={16} />
                 {isFirstCard ? 'First' : 'Prev'}
               </button>
-              <button 
-                onClick={() => navigateCards('next')} 
-                className={`nav-button-next ${isLastCard ? 'disabled' : ''}`}
-                disabled={isLastCard}
-              >
-                {isLastCard ? 'Last' : 'Next'}
-                <ChevronRight size={16} />
-              </button>
+              {isLastCard ? (
+                <button 
+                  onClick={onNextChapter} 
+                  className={`nav-button next-chapter`}
+                  disabled={isLastChapter}
+                >
+                  Next Chapter
+                  <ChevronRight size={16} />
+                </button>
+              ) : (
+                <button 
+                  onClick={() => navigateCards('next')} 
+                  className="nav-button-next"
+                >
+                  Next
+                  <ChevronRight size={16} />
+                </button>
+              )}
             </div>
           </div>
           <div className={`card-content-wrapper ${slideDirection}`}>
@@ -148,6 +158,9 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
     } finally {
       setLoading(false);
     }
+  };
+  const fetchNextChapter = () => {
+    fetchChapter('next');
   };
   const handleContentClick = (event) => {
     if (menuOpen && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
@@ -295,9 +308,11 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
           </div>
         )}
         <div className="main-content" onClick={handleContentClick}>
-          <ContentSection
+        <ContentSection
             type={contentType}
             content={chapterData[contentType]}
+            isLastChapter={currentChapter.number >= totalChapters}
+            onNextChapter={fetchNextChapter}
           />
         </div>
         
