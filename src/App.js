@@ -351,7 +351,11 @@ function App() {
  {showBooks && (
   <div className="book-list">
     {books.map((book) => (
-      <div key={book.Id} className="book-item">
+      <div 
+        key={book.Id} 
+        className="book-item"
+        onClick={() => handleBookClick(book)}
+      >
         {book.coverUrl && (
           <div className="book-cover-wrapper">
             <img 
@@ -367,10 +371,7 @@ function App() {
             <h3 className="book-title-list">{book.Title}</h3>
             <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'}</p>
           </div>
-          <button 
-            className="book-action"
-            onClick={() => handleBookClick(book)}
-          >
+          <button className="book-action">
             Start Reading
           </button>
         </div>

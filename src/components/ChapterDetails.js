@@ -154,6 +154,11 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
       setMenuOpen(false);
     }
   };
+  const sidebarSwipeHandlers = useSwipeable({
+    onSwipedLeft: () => setMenuOpen(false),
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true
+  });
   const fetchContentData = async (type) => {
     setLoading(true);
     setError(null);
@@ -276,7 +281,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
 
       <div className="content-wrapper">
         {menuOpen && (
-          <div className="sidebar" ref={sidebarRef}>
+          <div className="sidebar" ref={sidebarRef}{...sidebarSwipeHandlers}>
             {menuItems.map((item) => (
               <button
                 key={item.type}
