@@ -13,11 +13,18 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, s
   const [chapters, setChapters] = useState([]);
   const [totalChapters, setTotalChapters] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
+  const [chapterProgress, setChapterProgress] = useState({});
 
   useEffect(() => {
     fetchBookDetails();
     fetchChapters();
   }, [bookId]);
+
+  useEffect(() => {
+    if (chapters.length > 0 && userId) {
+      fetchChapterProgress();
+    }
+  }, [chapters, userId]);
 
   const fetchBookDetails = async () => {
     try {
@@ -57,6 +64,30 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, s
     }
   };
 
+  const fetchChapterProgress = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('book_id', bookId);
+  
+      if (error) throw error;
+  
+      const progress = {};
+data.forEach(item => {
+  progress[item.chapter_id] = {
+    cardNumber: item.card_number,
+    totalCards: item.total_cards
+  };
+});
+setChapterProgress(progress);
+     
+      console.log(progress);
+    } catch (error) {
+      console.error('Error fetching chapter progress:', error.message);
+    }
+  };
   const handleChapterClick = (chapter) => {
     setShowChapter(chapter);
     setCurrentChapterIndex(chapter.chapter_number - 1);
@@ -132,7 +163,13 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, s
             </span>
             <span className={`chapter-title-listing ${chapter.chapter_number === currentChapterIndex + 1 ? 'font-semibold' : ''}`}>
               {chapter.chapter_title}
+              
             </span>
+            <span className="chapter-progress">
+  {chapterProgress[chapter.id] ? 
+    `${chapterProgress[chapter.id].cardNumber}/${chapterProgress[chapter.id].totalCards}` : 
+    ''}
+</span>
             <ChevronRight className="chapter-arrow" size={16} />
           </div>
         ))}
