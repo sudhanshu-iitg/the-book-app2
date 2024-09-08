@@ -386,6 +386,7 @@ function App() {
     chapterId={selectedChapter}
     showChapter={selectedChapter}
     setShowChapter={setSelectedChapter}
+    userId={user?.id}
   />
 )}
       </main>

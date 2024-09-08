@@ -8,7 +8,7 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, setShowChapter }) => {
+const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, setShowChapter, userId }) => {
   const [book, setBook] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [totalChapters, setTotalChapters] = useState(0);
@@ -86,6 +86,7 @@ const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, s
           chapterTitle={showChapter.chapter_title}
           chapterNumber={showChapter.chapter_number}
           totalChapters={totalChapters}
+          userId={userId}
         />
       </div>
     );

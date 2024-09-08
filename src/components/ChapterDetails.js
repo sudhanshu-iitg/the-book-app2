@@ -3,25 +3,29 @@ import { Menu, X, BookOpen, FileText, MessageSquare, CreditCard, ArrowLeft, Chev
 import { createClient } from "@supabase/supabase-js";
 import './ChapterDetails.css';
 import { useSwipeable } from 'react-swipeable';
-
+import saveReadingProgress from './saveReadingProgress'; 
 const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter }) => {
+const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter,onCardChange }) => {
   const [currentCard, setCurrentCard] = useState(0);
   const [slideDirection, setSlideDirection] = useState(null);
   const navigateCards = (direction) => {
     if (!Array.isArray(content)) return;
     setCurrentCard(prev => {
+      let newCard = prev;
       if (direction === 'next' && prev < content.length - 1) {
         setSlideDirection('left');
-        return prev + 1;
+        newCard = prev + 1;
       } else if (direction === 'prev' && prev > 0) {
         setSlideDirection('right');
-        return prev - 1;
+        newCard = prev - 1;
       }
-      return prev;
+      if (newCard !== prev) {
+        onCardChange(content[newCard].id,  content.length,newCard + 1,); // Save progress when card changes
+      }
+      return newCard;
     });
   };
   const handlers = useSwipeable({
@@ -108,7 +112,7 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
   }
 };
 
-const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber,totalChapters}) => {
+const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber,totalChapters, userId}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [contentType, setContentType] = useState('biteSize');
   const [chapterData, setChapterData] = useState({});
@@ -120,7 +124,14 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
     number: chapterNumber
   });
   const sidebarRef = useRef(null);
-
+  
+  const handleCardChange = (cardId,card_number, total_cards) => {
+    // Save progress when a new card is viewed
+    if (userId) {
+      saveReadingProgress(userId, bookId, currentChapter.id, cardId,card_number, total_cards);
+    }
+  };
+  
   const fetchChapter = async (direction) => {
     setLoading(true);
     setError(null);
@@ -194,6 +205,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
             .from('cards')
             .select('*')
             .eq('chapter_id', currentChapter.id);
+            handleCardChange(biteSizeData[0].id,biteSizeData.length,biteSizeData[0].card_num);
           if (biteSizeError) throw biteSizeError;
           data = biteSizeData;
           break;
@@ -313,6 +325,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
             content={chapterData[contentType]}
             isLastChapter={currentChapter.number >= totalChapters}
             onNextChapter={fetchNextChapter}
+            onCardChange={handleCardChange} 
           />
         </div>
         
