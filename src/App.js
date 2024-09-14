@@ -11,7 +11,7 @@ import './components/ProfessionBooks.css';
 import SignInButton from './components/SignInButton';
 import SignOutButton from './components/SignOutButton';
 import BookDetails from './components/BookDetails';
-
+import RecentlyReadBooks from './components/RecentlyReadBooks';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
 const supabaseKey = process.env.REACT_APP_supabaseKey
@@ -74,6 +74,8 @@ function App() {
   const [professions, setProfessions] = useState([]);
   const [user, setUser] = useState(null);
   const [showBackButton, setShowBackButton] = useState(false);
+  const [recentlyReadBooks, setRecentlyReadBooks] = useState([]);
+  const [myBooks, setMyBooks] = useState([]);
   
   useEffect(() => {
     fetchCategories();
@@ -85,6 +87,7 @@ function App() {
       if (session) {
         setUser(session.user);
         updateUserProfile(session.user);
+        fetchRecentlyReadBooks(session.user.id);
       }
     };
     handleAuthRedirect();
@@ -103,6 +106,54 @@ function App() {
     };
   }, []);
   
+  const fetchMyBooks = async () => {
+    if (!user) {
+      console.log("No user logged in");
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from('user_progress')
+        .select('book_id')
+        .eq('user_id', user.id)
+        .order('last_read_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data.length === 0) {
+        console.log("No books found for this user");
+        setMyBooks([]);
+        setBooks([]);  // Clear the books state
+        setShowCategories(false);
+        setShowBooks(true);
+        setShowBackButton(true);
+        return;
+      }
+
+      const bookIds = data.map(item => item.book_id);
+      
+      const { data: booksData, error: booksError } = await supabase
+        .from('books')
+        .select('*')
+        .in('Id', bookIds);
+
+      if (booksError) throw booksError;
+
+      console.log("Fetched books:", booksData);
+
+      setMyBooks(booksData);
+      setBooks(booksData);  // Set the books state to display
+      setShowCategories(false);
+      setShowBooks(true);
+      setShowBackButton(true);
+    } catch (error) {
+      console.error('Error fetching my books:', error.message);
+    }
+  };
+
+  const handleMyBooksClick = () => {
+    fetchMyBooks();
+  };
   // Add this function outside of the useEffect, but still within your component
   const updateUserProfile = async (user) => {
     const { error } = await supabase
@@ -114,6 +165,41 @@ function App() {
       });
   
     if (error) console.error('Error updating user profile:', error);
+  };
+  const fetchRecentlyReadBooks = async (userId) => {
+    try {
+      // Fetch the book IDs from user_progress
+      const { data: progressData, error: progressError } = await supabase
+        .from('user_progress')
+        .select('book_id')
+        .eq('user_id', userId)
+        .order('last_read_at', { ascending: false });
+  
+      if (progressError) throw progressError;
+  
+      // Extract unique book IDs from the progress data
+      const uniqueBookIds = [...new Set(progressData.map(item => item.book_id))];
+  
+      // Limit to 5 unique books
+      const limitedUniqueBookIds = uniqueBookIds.slice(0, 5);
+  
+      // Fetch the book details using the unique book IDs
+      const { data: booksData, error: booksError } = await supabase
+        .from('books')
+        .select('*')
+        .in('Id', limitedUniqueBookIds);
+  
+      if (booksError) throw booksError;
+  
+      // Sort the books data to match the order of the limitedUniqueBookIds array
+      const sortedBooks = limitedUniqueBookIds
+        .map(id => booksData.find(book => book.Id === id))
+        .filter(Boolean);
+  
+      setRecentlyReadBooks(sortedBooks);
+    } catch (error) {
+      console.error('Error fetching recently read books:', error.message);
+    }
   };
   const fetchRecommenders = async () => {
     try {
@@ -333,21 +419,24 @@ function App() {
   </div>
   
 </header>
-        <main>
-      {showCategories && (
-  <>
-    <Categories categories={categories} onCategoryClick={fetchBooksByCategory} />
-    
-    <ProfessionBooks 
-      professions={professions} 
-      onProfessionClick={fetchBooksByProfession} 
-    />
-    <RecommendedBooks 
-      recommenders={recommenders} 
-      onRecommenderClick={fetchBooksByRecommender} 
-    />
-  </>
-)}
+<main>
+        {showCategories && (
+          <>
+            <Categories 
+              categories={categories} 
+              onCategoryClick={fetchBooksByCategory}
+              onMyBooksClick={handleMyBooksClick}
+            />
+            <ProfessionBooks 
+              professions={professions} 
+              onProfessionClick={fetchBooksByProfession} 
+            />
+            <RecommendedBooks 
+              recommenders={recommenders} 
+              onRecommenderClick={fetchBooksByRecommender} 
+            />
+          </>
+        )}
  {showBooks && (
   <div className="book-list">
     {books.map((book) => (

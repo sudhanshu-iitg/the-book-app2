@@ -89,7 +89,11 @@ setChapterProgress(progress);
     }
   };
   const handleChapterClick = (chapter) => {
-    setShowChapter(chapter);
+    const lastReadCard = chapterProgress[chapter.id]?.cardNumber || 0;
+    setShowChapter({
+      ...chapter,
+      lastReadCard
+    });
     setCurrentChapterIndex(chapter.chapter_number - 1);
   };
 
@@ -118,6 +122,7 @@ setChapterProgress(progress);
           chapterNumber={showChapter.chapter_number}
           totalChapters={totalChapters}
           userId={userId}
+          lastReadCard={showChapter.lastReadCard}
         />
       </div>
     );

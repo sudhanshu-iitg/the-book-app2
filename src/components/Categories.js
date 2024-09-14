@@ -2,7 +2,6 @@ import React from 'react';
 import * as LucideIcons from 'lucide-react';
 
 const CategoryButton = ({ category, onClick }) => {
-  // Attempt to get the icon from Lucide, fallback to a default if not found
   const IconComponent = LucideIcons[category.icon] || LucideIcons.Folder;
 
   return (
@@ -16,11 +15,22 @@ const CategoryButton = ({ category, onClick }) => {
   );
 };
 
-const Categories = ({ categories, onCategoryClick }) => {
+const Categories = ({ categories, onCategoryClick, onMyBooksClick }) => {
+  const myBooksCategory = {
+    id: 'my-books',
+    name: 'My Books',
+    icon: 'BookOpen'
+  };
+
   return (
     <div className="categories-section">
       <h2 className="categories-title">Categories</h2>
       <div className="categories-container">
+        <CategoryButton
+          key={myBooksCategory.id}
+          category={myBooksCategory}
+          onClick={onMyBooksClick}
+        />
         {categories.map((category) => (
           <CategoryButton
             key={category.id}

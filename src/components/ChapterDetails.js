@@ -8,9 +8,12 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter,onCardChange }) => {
-  const [currentCard, setCurrentCard] = useState(0);
+const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter,onCardChange,initialCard, setCurrentCard   }) => {
+  
   const [slideDirection, setSlideDirection] = useState(null);
+  useEffect(() => {
+    setCurrentCard(initialCard);
+  }, [initialCard, setCurrentCard]);
   const navigateCards = (direction) => {
     if (!Array.isArray(content)) return;
     setCurrentCard(prev => {
@@ -34,12 +37,12 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
     preventDefaultTouchmoveEvent: true,
     trackMouse: true
   });
-  const isFirstCard = currentCard === 0;
-  const isLastCard = Array.isArray(content) && currentCard === content.length - 1;
+  const isFirstCard = initialCard  === 0;
+  const isLastCard = Array.isArray(content) && initialCard  === content.length - 1;
   useEffect(() => {
     const timer = setTimeout(() => setSlideDirection(null), 300);
     return () => clearTimeout(timer);
-  }, [currentCard]);
+  }, [initialCard ]);
   switch (type) {
     case 'biteSize':
       if (!Array.isArray(content) || content.length === 0) {
@@ -48,7 +51,7 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
       return (
         <div className="content-card bite-size" {...handlers}>
           <div className="card-header">
-            <h3 className="card-number">Card {currentCard + 1} of {content.length}</h3>
+            <h3 className="card-number">Card {initialCard  + 1} of {content.length}</h3>
             <div className="navigation-buttons">
               <button 
                 onClick={() => navigateCards('prev')} 
@@ -79,9 +82,9 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
             </div>
           </div>
           <div className={`card-content-wrapper ${slideDirection}`}>
-            <h2 className="card-heading">{content[currentCard].card_heading}</h2>
+            <h2 className="card-heading">{content[initialCard ].card_heading}</h2>
             <div className="bite-size-content">
-              <p>{content[currentCard].card_content}</p>
+              <p>{content[initialCard ].card_content}</p>
             </div>
           </div>
         </div>
@@ -112,12 +115,14 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
   }
 };
 
-const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber,totalChapters, userId}) => {
+const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber,totalChapters, userId,lastReadCard }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [contentType, setContentType] = useState('biteSize');
   const [chapterData, setChapterData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [initialCard, setInitialCard] = useState(lastReadCard || 1);
+  const [currentCard, setCurrentCard] = useState(lastReadCard || 0);
   const [currentChapter, setCurrentChapter] = useState({
     id: chapterId,
     title: chapterTitle,
@@ -160,6 +165,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
           summary: null
         });
         setContentType('biteSize'); // Reset to default view
+        setCurrentCard(0); 
       } else {
         setError(`No ${direction} chapter available.`);
       }
@@ -205,6 +211,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
             .from('cards')
             .select('*')
             .eq('chapter_id', currentChapter.id);
+            setInitialCard(Math.min(lastReadCard, biteSizeData.length - 1));
             handleCardChange(biteSizeData[0].id,biteSizeData.length,biteSizeData[0].card_num);
           if (biteSizeError) throw biteSizeError;
           data = biteSizeData;
@@ -326,6 +333,8 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
             isLastChapter={currentChapter.number >= totalChapters}
             onNextChapter={fetchNextChapter}
             onCardChange={handleCardChange} 
+            initialCard={currentCard}
+            setCurrentCard={setCurrentCard}
           />
         </div>
         
