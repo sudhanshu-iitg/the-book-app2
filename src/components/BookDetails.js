@@ -123,6 +123,7 @@ setChapterProgress(progress);
           totalChapters={totalChapters}
           userId={userId}
           lastReadCard={showChapter.lastReadCard}
+          bookTitle={book.Title}
         />
       </div>
     );

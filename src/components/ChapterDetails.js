@@ -115,7 +115,7 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
   }
 };
 
-const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber,totalChapters, userId,lastReadCard }) => {
+const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber,totalChapters, userId,lastReadCard, bookTitle }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [contentType, setContentType] = useState('biteSize');
   const [chapterData, setChapterData] = useState({});
@@ -285,7 +285,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
           <button onClick={toggleMenu} className="menu-button">
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <h2 className="chapter-number">Chapter {currentChapter.number || 'N/A'}</h2>
+          <h2 className="chapter-number">{bookTitle || '-'}</h2>
         </div>
         <div className="header-right">
           <button 
@@ -308,7 +308,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
       </header>
 
       <div className="chapter-info">
-        <h1 className="chapter-title">{currentChapter.title || 'Untitled Chapter'}</h1>
+        <h1 className="chapter-title">Chapter {currentChapter.number || '-'} - {currentChapter.title || 'Untitled Chapter'}</h1>
       </div>
 
       <div className="content-wrapper">
