@@ -11,7 +11,6 @@ import './components/ProfessionBooks.css';
 import SignInButton from './components/SignInButton';
 import SignOutButton from './components/SignOutButton';
 import BookDetails from './components/BookDetails';
-import RecentlyReadBooks from './components/RecentlyReadBooks';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
 const supabaseKey = process.env.REACT_APP_supabaseKey
@@ -76,7 +75,10 @@ function App() {
   const [showBackButton, setShowBackButton] = useState(false);
   const [recentlyReadBooks, setRecentlyReadBooks] = useState([]);
   const [myBooks, setMyBooks] = useState([]);
-  
+  const [bookNeedsRequest, setBookNeedsRequest] = useState(false);
+  const [bookTitle, setBookTitle] = useState([]);
+  const [bookAuthor, setBookAuthor] = useState([]);
+  const [bookUrl, setBookUrl] = useState([]);
   useEffect(() => {
     fetchCategories();
     fetchRecommenders();
@@ -264,25 +266,38 @@ function App() {
   };
   const handleBookClick = async (book) => {
     try {
+      let bookId;
+      if (book.ID !== null) {
+        bookId = book.Id;
+      } else {
+        bookId = book.ID;
+      }
+      console.log(bookId)
       const { data: bookData, error: bookError } = await supabase
         .from('books')
         .select('*')
-        .eq('Id', book.Id)
+        .eq('Id', bookId)
         .single();
+  
       if (bookError) {
         console.error('Error fetching book:', bookError.message);
-        console.error('Book:', book);
-        const apiUrl = `https://auto-production.up.railway.app/store?key=true&url=${encodeURIComponent(book.Mirror_2)}&title=${encodeURIComponent(book.Title)}&author=${encodeURIComponent(book.Author || 'Unknown Author')}`;
-        await fetch(apiUrl);
-        setShowPopup(true);
-        return;
-      }
+        // If the book is not found in the database, we still show the book details page
+        setSelectedBookId(book.ID);
         setShowBooks(false);
         setShowBackButton(true);
+        setBookAuthor(book.Author);
+        setBookTitle(book.Title);
+        setBookUrl(book.Mirror_1);
+        // We'll pass a flag to indicate that this book needs to be requested
+        setBookNeedsRequest(true);
+      } else {
         setSelectedBookId(book.Id);
-      } 
-   catch (error) {
-      console.error('Error fetching book:', error.message);
+        setShowBooks(false);
+        setShowBackButton(true);
+        setBookNeedsRequest(false);
+      }
+    } catch (error) {
+      console.error('Error handling book click:', error.message);
     }
   };
   const Popup = ({ onClose, bookTitle }) => {
@@ -379,6 +394,7 @@ function App() {
       const data = await response.json();
       
       if (data.docs && Array.isArray(data.docs)) {
+        console.log('Books:', data.docs);
         setBooks(data.docs.slice(0, 10));
         setShowCategories(false);
         setShowBooks(true);
@@ -476,7 +492,12 @@ function App() {
     showChapter={selectedChapter}
     setShowChapter={setSelectedChapter}
     userId={user?.id}
-  />
+    bookNeedsRequest={bookNeedsRequest}
+    bookTitle={bookTitle !== null ? bookTitle : undefined }
+    bookAuthor={bookAuthor !== null ? bookAuthor : undefined}
+    bookUrl={bookUrl !== null ? bookUrl : undefined }
+                 
+    />
 )}
       </main>
       {showPopup && (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Share2, Bookmark, Book, ChevronRight } from 'lucide-react';
+import { Share2, Bookmark, Book, ChevronRight, CheckCircle,AlertCircle  } from 'lucide-react';
 import './BookDetails.css';
 import ChapterDetails from './ChapterDetails';
 import { createClient } from "@supabase/supabase-js";
@@ -8,17 +8,21 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, setShowChapter, userId }) => {
+const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, setShowChapter, userId, bookNeedsRequest, bookTitle,bookAuthor,bookUrl }) => {
   const [book, setBook] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [totalChapters, setTotalChapters] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [chapterProgress, setChapterProgress] = useState({});
+  const [requestStatus, setRequestStatus] = useState('idle'); 
+
 
   useEffect(() => {
-    fetchBookDetails();
-    fetchChapters();
-  }, [bookId]);
+    if (!bookNeedsRequest) {
+      fetchBookDetails();
+      fetchChapters();
+    }
+  }, [bookId, bookNeedsRequest]);
 
   useEffect(() => {
     if (chapters.length > 0 && userId) {
@@ -106,6 +110,93 @@ setChapterProgress(progress);
     const activeClass = chapter.chapter_number === currentChapterIndex + 1 ? "bg-blue-100 border-l-4 border-blue-500 " : "hover:bg-gray-100 ";
     return baseClass + activeClass + "border-b last:border-b-0";
   };
+  const handleRequestBook = async () => {
+    // Immediately update UI
+    setRequestStatus('requested');
+
+    try {
+      const apiUrl = `https://thebookapp-production-eb6d.up.railway.app/store?key=true&url=${encodeURIComponent(bookUrl)}&title=${encodeURIComponent(bookTitle)}&author=${encodeURIComponent(bookAuthor || 'Unknown Author')}`;
+      console.log(apiUrl);
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // Update UI after successful request
+      setRequestStatus('success');
+    } catch (error) {
+      console.error('Error requesting book:', error.message);
+      // Update UI to show error state
+      setRequestStatus('error');
+    }
+  };
+
+  const renderRequestButton = () => {
+    switch (requestStatus) {
+      case 'requested':
+      case 'success':
+        return (
+          <button 
+            className="action-button bg-green-500 hover:bg-green-600"
+            disabled
+          >
+            <CheckCircle size={16} className="mr-2" />
+            Requested
+          </button>
+        );
+      case 'error':
+        return (
+          <button 
+            className="action-button bg-red-500 hover:bg-red-600"
+            onClick={handleRequestBook}
+          >
+            <AlertCircle size={16} className="mr-2" />
+            Try Again
+          </button>
+        );
+      default:
+        return (
+          <button 
+            className="action-button primary-button"
+            onClick={handleRequestBook}
+          >
+            <Book size={16} className="mr-2" />
+            Request This Book
+          </button>
+        );
+    }
+  };
+
+  if (bookNeedsRequest) {
+    return (
+      <div className="book-details-container">
+        <div className="book-details-header">
+          <div className="book-info">
+            <h1 className="book-title">{bookTitle}</h1>
+            <p className="book-author">{bookAuthor}</p>
+            <div className="book-actions">
+              {renderRequestButton()}
+            </div>
+          </div>
+        </div>
+        <p className="mt-4">
+          We're sorry, but this book is not currently available in our system. 
+          {requestStatus === 'success' || requestStatus === 'requested' ? (
+            <span className="text-green-600 font-semibold">
+              Thank you for your request! We'll add this book to our collection soon.
+            </span>
+          ) : requestStatus === 'error' ? (
+            <span className="text-red-600 font-semibold">
+              There was an error processing your request. Please try again.
+            </span>
+          ) : (
+            "If you'd like us to add it to our collection, please click the 'Request This Book' button above."
+          )}
+        </p>
+      </div>
+    );
+  }
 
   if (!book) {
     return <div>Loading...</div>;
