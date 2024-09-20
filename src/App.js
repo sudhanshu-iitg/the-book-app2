@@ -11,6 +11,7 @@ import './components/ProfessionBooks.css';
 import SignInButton from './components/SignInButton';
 import SignOutButton from './components/SignOutButton';
 import BookDetails from './components/BookDetails';
+import { NotLoggedInFallback, NoBooksFoundFallback,ErrorFallback  } from './components/FallbackComponents';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
 const supabaseKey = process.env.REACT_APP_supabaseKey
@@ -79,6 +80,8 @@ function App() {
   const [bookTitle, setBookTitle] = useState([]);
   const [bookAuthor, setBookAuthor] = useState([]);
   const [bookUrl, setBookUrl] = useState([]);
+  const [fallbackState, setFallbackState] = useState(null);
+
   useEffect(() => {
     fetchCategories();
     fetchRecommenders();
@@ -109,30 +112,27 @@ function App() {
   }, []);
   
   const fetchMyBooks = async () => {
-    if (!user) {
-      console.log("No user logged in");
-      return;
-    }
     try {
-      const { data, error } = await supabase
+      const { data: progressData, error: progressError } = await supabase
         .from('user_progress')
         .select('book_id')
         .eq('user_id', user.id)
         .order('last_read_at', { ascending: false });
 
-      if (error) throw error;
+      if (progressError) throw progressError;
 
-      if (data.length === 0) {
-        console.log("No books found for this user");
+      if (progressData.length === 0) {
+        console.log("No books found in user progress");
+        setFallbackState('no_books');
         setMyBooks([]);
-        setBooks([]);  // Clear the books state
+        setBooks([]);
         setShowCategories(false);
         setShowBooks(true);
         setShowBackButton(true);
         return;
       }
 
-      const bookIds = data.map(item => item.book_id);
+      const bookIds = progressData.map(item => item.book_id);
       
       const { data: booksData, error: booksError } = await supabase
         .from('books')
@@ -141,20 +141,43 @@ function App() {
 
       if (booksError) throw booksError;
 
-      console.log("Fetched books:", booksData);
+      if (booksData.length === 0) {
+        console.log("No books found in the database");
+        setFallbackState('no_books_in_db');
+        setMyBooks([]);
+        setBooks([]);
+      } else {
+        console.log("Fetched books:", booksData);
+        setMyBooks(booksData);
+        setBooks(booksData);
+        setFallbackState(null);
+      }
 
-      setMyBooks(booksData);
-      setBooks(booksData);  // Set the books state to display
       setShowCategories(false);
       setShowBooks(true);
       setShowBackButton(true);
     } catch (error) {
       console.error('Error fetching my books:', error.message);
+      setFallbackState('error');
+      setMyBooks([]);
+      setBooks([]);
+      setShowCategories(false);
+      setShowBooks(true);
+      setShowBackButton(true);
     }
   };
 
+
   const handleMyBooksClick = () => {
-    fetchMyBooks();
+    if (!user) {
+      console.log("No user logged in");
+      setFallbackState('not_logged_in');
+      setShowCategories(false);
+      setShowBooks(true);
+      setShowBackButton(true);
+    } else {
+      fetchMyBooks();
+    }
   };
   // Add this function outside of the useEffect, but still within your component
   const updateUserProfile = async (user) => {
@@ -337,11 +360,11 @@ function App() {
     const iconMap = {
       'My Books': 'Book',
       'Finance': 'DollarSign',
-      'Product management': 'Briefcase',
-      'Personal development': 'User',
+      'Product Management': 'Briefcase',
+      'Personal Development': 'User',
       'New': 'Plus',
       'Happiness': 'Smile',
-      'Women\'s health': 'Heart',
+      'Women\'s Health': 'Heart',
       'Philosophy': 'Brain',
       'Biographies': 'Users',
       'Creativity': 'Paintbrush',
@@ -437,7 +460,12 @@ function App() {
       }
     }
   };
- 
+  const handleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
+    if (error) console.error('Error: ', error);
+  };
   return (
       <div className="App">
         <header>
@@ -481,8 +509,18 @@ function App() {
           </>
         )}
  {showBooks && (
-  <div className="book-list">
-    {books.map((book) => (
+          <div className="book-list">
+            <div className="fallback">
+            {fallbackState === 'not_logged_in' && (
+              <NotLoggedInFallback onSignInClick={handleSignIn} />
+            )}
+            {(fallbackState === 'no_books' || fallbackState === 'no_books_in_db') && (
+              <NoBooksFoundFallback />
+            )}
+            {fallbackState === 'error' && (
+              <ErrorFallback message="An error occurred while fetching your books. Please try again later." />
+            )}</div>
+            {!fallbackState && books.map((book) => (
       <div 
         key={book.Id} 
         className="book-item"
