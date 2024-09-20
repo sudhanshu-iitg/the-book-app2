@@ -115,7 +115,7 @@ setChapterProgress(progress);
     setRequestStatus('requested');
 
     try {
-      const apiUrl = `https://thebookapp-production-eb6d.up.railway.app/store?key=true&url=${encodeURIComponent(bookUrl)}&title=${encodeURIComponent(bookTitle)}&author=${encodeURIComponent(bookAuthor || 'Unknown Author')}`;
+      const apiUrl = `https://thebookapp-production-eb6d.up.railway.app/store?key=true&url=${encodeURIComponent(bookUrl)}&title=${encodeURIComponent(bookTitle)}&author=${encodeURIComponent(bookAuthor || 'Unknown Author')}&id=${encodeURIComponent(bookId)}`;
       console.log(apiUrl);
       const response = await fetch(apiUrl);
       

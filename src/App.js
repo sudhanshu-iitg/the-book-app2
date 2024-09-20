@@ -80,6 +80,7 @@ function App() {
   const [bookTitle, setBookTitle] = useState([]);
   const [bookAuthor, setBookAuthor] = useState([]);
   const [bookUrl, setBookUrl] = useState([]);
+  const [bookId, setBookId] = useState([]);
   const [fallbackState, setFallbackState] = useState(null);
 
   useEffect(() => {
@@ -311,6 +312,7 @@ function App() {
         setBookAuthor(book.Author);
         setBookTitle(book.Title);
         setBookUrl(book.Mirror_1);
+        setBookId(book.ID);
         // We'll pass a flag to indicate that this book needs to be requested
         setBookNeedsRequest(true);
       } else {
@@ -539,7 +541,8 @@ function App() {
         <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
           <div>
             <h3 className="book-title-list">{book.Title}</h3>
-            <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'}</p>
+            <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'} - {book.Size ? book.Size : ''}</p>
+            <p className="book-author-list"></p>
           </div>
           <button className="book-action">
             Start Reading
@@ -551,7 +554,7 @@ function App() {
 )}
                 {selectedBookId && (
   <BookDetails
-    bookId={selectedBookId}
+    bookId={selectedBookId!== null?selectedBookId :bookId}
     onBackClick={handleBackClick}
     chapterId={selectedChapter}
     showChapter={selectedChapter}
