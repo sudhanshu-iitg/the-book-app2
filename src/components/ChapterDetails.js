@@ -49,7 +49,14 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
         return <div className="content-card">No bite-size content available.</div>;
       }
       return (
-        <div className="content-card bite-size" {...handlers}>
+        <div  {...handlers}>
+          <div className="book-excerpt">
+          <div className={`card-content-wrapper ${slideDirection}`}>
+            <h4>{content[initialCard ].card_heading}</h4>
+            <div >
+              <p>{content[initialCard ].card_content}</p>
+            </div>
+          </div></div>
           <div className="card-header">
             <h3 className="card-number">Card {initialCard  + 1} of {content.length}</h3>
             <div className="navigation-buttons">
@@ -79,12 +86,6 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
                   <ChevronRight size={16} />
                 </button>
               )}
-            </div>
-          </div>
-          <div className={`card-content-wrapper ${slideDirection}`}>
-            <h2 className="card-heading">{content[initialCard ].card_heading}</h2>
-            <div className="bite-size-content">
-              <p>{content[initialCard ].card_content}</p>
             </div>
           </div>
         </div>
@@ -285,7 +286,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
           <button onClick={toggleMenu} className="menu-button">
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <h2 className="chapter-number">{bookTitle || '-'}</h2>
+          <h2 className="chapter-navigation">{bookTitle || '-'}</h2>
         </div>
         <div className="header-right">
           <button 
@@ -307,9 +308,9 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
         </div>
       </header>
 
-      <div className="chapter-info">
-        <h1 className="chapter-title">Chapter {currentChapter.number || '-'} - {currentChapter.title || 'Untitled Chapter'}</h1>
-      </div>
+      
+        <h3 >Chapter {currentChapter.number || '-'} - {currentChapter.title || 'Untitled Chapter'}</h3>
+      
 
       <div className="content-wrapper">
         {menuOpen && (
@@ -326,7 +327,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
             ))}
           </div>
         )}
-        <div className="main-content" onClick={handleContentClick}>
+        <div  onClick={handleContentClick}>
         <ContentSection
             type={contentType}
             content={chapterData[contentType]}

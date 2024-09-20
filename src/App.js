@@ -386,13 +386,15 @@ function App() {
     }
   
     setIsLoading(true);
+    let data = null;  // Initialize 'data' outside the try block
+  
     try {
       const response = await fetch(`https://auto-production.up.railway.app/search?key=${encodeURIComponent(searchTerm)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
-      
+      data = await response.json();
+  
       if (data.docs && Array.isArray(data.docs)) {
         console.log('Books:', data.docs);
         setBooks(data.docs.slice(0, 10));
@@ -408,6 +410,22 @@ function App() {
       alert('An error occurred while searching. Please try again.');
     } finally {
       setIsLoading(false);
+      try {
+        const { data: supabaseData, error } = await supabase
+          .from('search_history')
+          .upsert(
+            { 
+              user_id: user?.id, 
+              search_term: searchTerm,
+              response: JSON.stringify(data?.docs || [])  // Safely handle undefined 'data'
+            }
+          );
+  
+        if (error) throw error;
+        console.log('Progress saved successfully');
+      } catch (error) {
+        console.error('Error saving progress:', error);
+      }
     }
   };
  
