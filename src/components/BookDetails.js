@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Share2, Bookmark, Book, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Share2, Bookmark, Book, ChevronRight , Clipboard } from 'lucide-react';
 import './BookDetails.css';
 import ChapterDetails from './ChapterDetails';
 import { createClient } from "@supabase/supabase-js";
@@ -8,12 +9,14 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BookDetails = ({ bookId, onBackClick, generateShareableUrl, showChapter, setShowChapter, userId }) => {
+const BookDetails = ({ bookId, onBackClick, showChapter, setShowChapter, userId }) => {
+  const navigate = useNavigate();
   const [book, setBook] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [totalChapters, setTotalChapters] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [chapterProgress, setChapterProgress] = useState({});
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchBookDetails();
@@ -90,6 +93,7 @@ setChapterProgress(progress);
   };
   const handleChapterClick = (chapter) => {
     const lastReadCard = chapterProgress[chapter.id]?.cardNumber || 0;
+    navigate(`/books/${bookId}/chapters/${chapter.id}`);
     setShowChapter({
       ...chapter,
       lastReadCard
@@ -98,7 +102,10 @@ setChapterProgress(progress);
   };
 
   const handleBackToBook = () => {
+    
     setShowChapter(null);
+    // navigate(`/books/${bookId}/chapters`);
+    navigate(`/books/${book.Id}`);
   };
 
   const getChapterClassName = (chapter) => {
@@ -106,6 +113,23 @@ setChapterProgress(progress);
     const activeClass = chapter.chapter_number === currentChapterIndex + 1 ? "bg-blue-100 border-l-4 border-blue-500 " : "hover:bg-gray-100 ";
     return baseClass + activeClass + "border-b last:border-b-0";
   };
+
+
+// updation
+
+const generateShareableUrl = async () => {
+  const shareableLink = `${window.location.origin}/books/${bookId}`;
+
+  try {
+    await navigator.clipboard.writeText(shareableLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+  }
+};
+
+
 
   if (!book) {
     return <div>Loading...</div>;
@@ -145,7 +169,9 @@ setChapterProgress(progress);
               <Bookmark size={16} /> Add to Library
             </button>
             <button className="action-button secondary-button" onClick={generateShareableUrl}>
-              <Share2 size={16} /> Share
+            {copied ? <Clipboard size={16} /> : <Share2 size={16} />}
+            {copied ? 'Copied!' : 'Share'}
+              {/* <Share2 size={16} /> Share */}
             </button>
           </div>
         </div>

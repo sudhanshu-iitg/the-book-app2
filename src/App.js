@@ -1,4 +1,7 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate, useParams ,useLocation} from 'react-router-dom';
 import { useEffect, useState } from "react";
+// import { useNavigate,useLocation } from "react-router-dom";
 import './App.css';
 import {  pdfjs } from "react-pdf";
 import { createClient } from "@supabase/supabase-js";
@@ -61,6 +64,8 @@ const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, isLoading }) => {
   );
 };
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [books, setBooks] = useState([]);
@@ -70,17 +75,45 @@ function App() {
   const [selectedChapter, setSelectedChapter] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [recommenders, setRecommenders] = useState([]);
   const [professions, setProfessions] = useState([]);
   const [user, setUser] = useState(null);
   const [showBackButton, setShowBackButton] = useState(false);
   const [recentlyReadBooks, setRecentlyReadBooks] = useState([]);
   const [myBooks, setMyBooks] = useState([]);
+  // const [, forceUpdate] = useState();
+  
   
   useEffect(() => {
-    fetchCategories();
-    fetchRecommenders();
-    fetchProfessions();
+
+    const handleLocationChange = () => {
+      const path = location.pathname;
+      if (path === '/') {
+        setShowCategories(true);
+        setShowBooks(false);
+        setSelectedBookId(null);
+        setSelectedCategoryId(null);
+        setSelectedChapter(null);
+        setShowBackButton(false);
+      } else if (path.startsWith('/books/')) {
+        const bookId = path.split('/')[2];
+        setShowCategories(false);
+        setShowBooks(false);
+        setSelectedBookId(bookId);
+        setShowBackButton(true);
+      } else if (path.startsWith('/recommender/') || path.startsWith('/profession/') || /^\/\d+$/.test(path)) {
+        setShowCategories(false);
+        setShowBooks(true);
+        setSelectedBookId(null);
+        setShowBackButton(true);
+      }
+      
+    };
+
+    handleLocationChange();
+
+  
     const handleAuthRedirect = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error) console.error('Error getting session:', error);
@@ -91,20 +124,79 @@ function App() {
       }
     };
     handleAuthRedirect();
+
+    const handleAuthChange = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) console.error('Error getting session:', error);
+      if (session) {
+        setUser(session.user);
+        updateUserProfile(session.user);
+        fetchRecentlyReadBooks(session.user.id);
+        
+        if (window.location.hash.includes('access_token')) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+    handleAuthChange();
+
+    fetchCategories();
+    fetchRecommenders();
+    fetchProfessions();
+
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
         setUser(session.user);
         updateUserProfile(session.user);
+        handleAuthChange();
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
       }
     });
 
+    
+    
+
+     // Handle browser navigation
+
+     const handlePopState = (event) => {
+      const state = event.state;
+      if (state) {
+        setShowCategories(state.showCategories);
+        setShowBooks(state.showBooks);
+        setSelectedCategoryId(state.selectedCategoryId);
+        setSelectedBookId(state.selectedBookId);
+        setSelectedChapter(state.selectedChapter);
+        setShowBackButton(state.showBackButton);
+        if (state.books) {
+          setBooks(state.books);
+        }
+      } else {
+        // Handle the case when there's no state (i.e., we've gone back to the initial page)
+        setShowCategories(true);
+        setShowBooks(false);
+        setSelectedBookId(null);
+        setSelectedCategoryId(null);
+        setSelectedChapter(null);
+        setShowBackButton(false);
+        setBooks([]);
+      }
+    };
+
+    window.addEventListener('popstate',handlePopState);
+    
+    // Initial state setup based on current location
+    // handlePopState();
+
   
     return () => {
+      window.removeEventListener('popstate', handlePopState);
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [location]);// Add location to the dependency array to listen for changes
+    
   
   const fetchMyBooks = async () => {
     if (!user) {
@@ -239,10 +331,12 @@ function App() {
       setShowCategories(false);
       setShowBooks(true);
       setShowBackButton(true);
+      navigate(`/recommender/${recommenderId}`);
       // You might want to update breadcrumbs here as well
     } catch (error) {
       console.error('Error fetching books by recommender:', error.message);
     }
+    
   };
 
   const fetchBooksByProfession = async (professionId) => {
@@ -257,10 +351,12 @@ function App() {
       setShowCategories(false);
       setShowBooks(true);
       setShowBackButton(true);
+      navigate(`/profession/${professionId}`);
       // Update breadcrumbs here
     } catch (error) {
       console.error('Error fetching books by profession:', error.message);
     }
+    
   };
   const handleBookClick = async (book) => {
     try {
@@ -277,14 +373,17 @@ function App() {
         setShowPopup(true);
         return;
       }
-        setShowBooks(false);
-        setShowBackButton(true);
-        setSelectedBookId(book.Id);
-      } 
-   catch (error) {
+      setShowBooks(false);
+      setShowBackButton(true);
+      setSelectedBookId(book.Id);
+      navigate(`/books/${book.Id}`);
+      
+    } catch (error) {
       console.error('Error fetching book:', error.message);
     }
   };
+
+
   const Popup = ({ onClose, bookTitle }) => {
     return (
       <div className="popup-overlay">
@@ -340,30 +439,41 @@ function App() {
       setBooks(booksData);
       setShowCategories(false);
       setShowBooks(true);
+      setSelectedCategoryId(categoryId);
       setShowBackButton(true);
+      navigate(`/${categoryId}`);
     } catch (error) {
       console.error('Error fetching books:', error);
     }
   };
+
+
+  // const updateHistory = (newState) => {
+  //   window.history.replaceState(newState, '', window.location.pathname);
+  // };
+
   const handleBackClick = () => {
     if (selectedChapter) {
-      // If viewing chapter details, go   back to book details
-      setSelectedChapter(null); 
-      return null
-    } else if (selectedBookId) { 
-      // If viewing book details, go back to book list 
+      setSelectedChapter(null);
+      // navigate(`books/${selectedBookId}`);
+       navigate(`/books/${selectedBookId}`);
+    } 
+    else if (selectedBookId) {
       setSelectedBookId(null);
-      setShowBooks(true); 
-      setShowCategories(false); 
-    } else if (showBooks) {
-      // If viewing book list, go back to categories
+      setShowBooks(true);
+      setShowCategories(false);
+      navigate(`/${selectedCategoryId}`);
+    } 
+    else if (showBooks) {
       setShowBooks(false);
       setShowCategories(true);
+      setShowBackButton(false);
+      navigate('/');
     }
-  
-    // Update back button visibility
-    setShowBackButton( selectedBookId || selectedChapter);
+    
   };
+
+
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       alert("Please enter a search term");
@@ -396,30 +506,37 @@ function App() {
   };
  
   return (
-      <div className="App">
-        <header>
-  <div className="top-nav">
-    <h1>The Book App</h1>
-    <div className="auth-buttons">
-      {user ? <SignOutButton /> : <SignInButton />}
-    </div>
-  </div>
-  <div className="search-wrapper">
-  {showBackButton && (
+    <div className="App">
+     
+      <header>
+        <div className="top-nav">
+        <h1 onClick={() => {
+  setShowCategories(true);
+  setShowBooks(false);
+  setShowBackButton(false);
+  navigate('/');
+}}>
+            The Book App
+          </h1>
+          <div className="auth-buttons">
+            {user ? <SignOutButton /> : <SignInButton />}
+          </div>
+        </div>
+        <div className="search-wrapper">
+          {showBackButton && (
             <button className="back-button" onClick={handleBackClick}>
               <ArrowLeft size={20} />
             </button>
           )}
-    <SearchBar
-      searchTerm={searchTerm}
-      setSearchTerm={setSearchTerm}
-      handleSearch={handleSearch}
-      isLoading={isLoading}
-    />
-  </div>
-  
-</header>
-<main>
+          <SearchBar
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            handleSearch={handleSearch}
+            isLoading={isLoading}
+          />
+        </div>
+      </header>
+      <main>
         {showCategories && (
           <>
             <Categories 
@@ -437,55 +554,56 @@ function App() {
             />
           </>
         )}
- {showBooks && (
-  <div className="book-list">
-    {books.map((book) => (
-      <div 
-        key={book.Id} 
-        className="book-item"
-        onClick={() => handleBookClick(book)}
-      >
-        {book.coverUrl && (
-          <div className="book-cover-wrapper">
-            <img 
-              src={book.coverUrl} 
-              alt={book.Title} 
-              className="book-cover"
-              style={{ display: 'block', margin: 'auto' }}
-            />
+        {showBooks && (
+          <div className="book-list">
+            {books.map((book) => (
+              <div 
+                key={book.Id} 
+                className="book-item"
+                onClick={() => handleBookClick(book)}
+              >
+                {book.coverUrl && (
+                  <div className="book-cover-wrapper">
+                    <img 
+                      src={book.coverUrl} 
+                      alt={book.Title} 
+                      className="book-cover"
+                      style={{ display: 'block', margin: 'auto' }}
+                    />
+                  </div>
+                )}
+                <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
+                  <div>
+                    <h3 className="book-title-list">{book.Title}</h3>
+                    <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'}</p>
+                  </div>
+                  <button className="book-action">
+                    Start Reading
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-        <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
-          <div>
-            <h3 className="book-title-list">{book.Title}</h3>
-            <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'}</p>
-          </div>
-          <button className="book-action">
-            Start Reading
-          </button>
-        </div>
-      </div>
-    ))}
-  </div>
-)}
-                {selectedBookId && (
-  <BookDetails
-    bookId={selectedBookId}
-    onBackClick={handleBackClick}
-    chapterId={selectedChapter}
-    showChapter={selectedChapter}
-    setShowChapter={setSelectedChapter}
-    userId={user?.id}
-  />
-)}
+        {selectedBookId && (
+          <BookDetails
+            bookId={selectedBookId}
+            onBackClick={handleBackClick}
+            chapterId={selectedChapter}        
+            showChapter={selectedChapter}
+            setShowChapter={setSelectedChapter}
+            userId={user?.id}
+          />
+        )}
       </main>
       {showPopup && (
-  <Popup 
-    onClose={() => setShowPopup(false)} 
-    bookTitle={books.find(b => b.id === selectedBookId)?.title || 'Selected book'}
-  />
-)}</div>
-    
+        <Popup 
+          onClose={() => setShowPopup(false)} 
+          bookTitle={books.find(b => b.id === selectedBookId)?.title || 'Selected book'}
+        />
+      )}
+    </div>
+     
   );
 }
 

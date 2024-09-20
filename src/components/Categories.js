@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 
 const CategoryButton = ({ category, onClick }) => {
@@ -32,6 +33,7 @@ const Categories = ({ categories, onCategoryClick, onMyBooksClick }) => {
           onClick={onMyBooksClick}
         />
         {categories.map((category) => (
+          
           <CategoryButton
             key={category.id}
             category={category}
