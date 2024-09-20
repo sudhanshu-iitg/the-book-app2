@@ -335,11 +335,20 @@ function App() {
   // Helper function to map category names to icons
   const getCategoryIcon = (categoryName) => {
     const iconMap = {
+      'My Books': 'Book',
       'Finance': 'DollarSign',
       'Product management': 'Briefcase',
       'Personal development': 'User',
-      // Add more mappings as needed
+      'New': 'Plus',
+      'Happiness': 'Smile',
+      'Women\'s health': 'Heart',
+      'Philosophy': 'Brain',
+      'Biographies': 'Users',
+      'Creativity': 'Paintbrush',
+      'Entrepreneurship': 'TrendingUp',
+      'History': 'Clock'
     };
+  
     return iconMap[categoryName] || 'Folder'; // Fallback to 'Folder' if no match
   };
 
