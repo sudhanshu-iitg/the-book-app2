@@ -290,19 +290,14 @@ function App() {
   };
   const handleBookClick = async (book) => {
     try {
-      let bookId;
-      if (book.ID !== null) {
-        bookId = book.Id;
-      } else {
-        bookId = book.ID;
-      }
+      let bookId = book.ID ?? book.Id;
       console.log(bookId)
       const { data: bookData, error: bookError } = await supabase
         .from('books')
         .select('*')
         .eq('Id', bookId)
         .single();
-  
+      console.log(bookData)
       if (bookError) {
         console.error('Error fetching book:', bookError.message);
         // If the book is not found in the database, we still show the book details page
@@ -316,7 +311,7 @@ function App() {
         // We'll pass a flag to indicate that this book needs to be requested
         setBookNeedsRequest(true);
       } else {
-        setSelectedBookId(book.Id);
+        setSelectedBookId(bookId);
         setShowBooks(false);
         setShowBackButton(true);
         setBookNeedsRequest(false);
@@ -568,12 +563,7 @@ function App() {
     />
 )}
       </main>
-      {showPopup && (
-  <Popup 
-    onClose={() => setShowPopup(false)} 
-    bookTitle={books.find(b => b.id === selectedBookId)?.title || 'Selected book'}
-  />
-)}</div>
+      </div>
     
   );
 }
