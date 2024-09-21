@@ -14,7 +14,7 @@ import './components/ProfessionBooks.css';
 import SignInButton from './components/SignInButton';
 import SignOutButton from './components/SignOutButton';
 import BookDetails from './components/BookDetails';
-import RecentlyReadBooks from './components/RecentlyReadBooks';
+import { NotLoggedInFallback, NoBooksFoundFallback,ErrorFallback  } from './components/FallbackComponents';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
 const supabaseKey = process.env.REACT_APP_supabaseKey
@@ -83,9 +83,13 @@ function App() {
   const [showBackButton, setShowBackButton] = useState(false);
   const [recentlyReadBooks, setRecentlyReadBooks] = useState([]);
   const [myBooks, setMyBooks] = useState([]);
-  // const [, forceUpdate] = useState();
-  
-  
+  const [bookNeedsRequest, setBookNeedsRequest] = useState(false);
+  const [bookTitle, setBookTitle] = useState([]);
+  const [bookAuthor, setBookAuthor] = useState([]);
+  const [bookUrl, setBookUrl] = useState([]);
+  const [bookId, setBookId] = useState([]);
+  const [fallbackState, setFallbackState] = useState(null);
+
   useEffect(() => {
 
     const handleLocationChange = () => {
@@ -215,30 +219,27 @@ function App() {
     
   
   const fetchMyBooks = async () => {
-    if (!user) {
-      console.log("No user logged in");
-      return;
-    }
     try {
-      const { data, error } = await supabase
+      const { data: progressData, error: progressError } = await supabase
         .from('user_progress')
         .select('book_id')
         .eq('user_id', user.id)
         .order('last_read_at', { ascending: false });
 
-      if (error) throw error;
+      if (progressError) throw progressError;
 
-      if (data.length === 0) {
-        console.log("No books found for this user");
+      if (progressData.length === 0) {
+        console.log("No books found in user progress");
+        setFallbackState('no_books');
         setMyBooks([]);
-        setBooks([]);  // Clear the books state
+        setBooks([]);
         setShowCategories(false);
         setShowBooks(true);
         setShowBackButton(true);
         return;
       }
 
-      const bookIds = data.map(item => item.book_id);
+      const bookIds = progressData.map(item => item.book_id);
       
       const { data: booksData, error: booksError } = await supabase
         .from('books')
@@ -247,20 +248,43 @@ function App() {
 
       if (booksError) throw booksError;
 
-      console.log("Fetched books:", booksData);
+      if (booksData.length === 0) {
+        console.log("No books found in the database");
+        setFallbackState('no_books_in_db');
+        setMyBooks([]);
+        setBooks([]);
+      } else {
+        console.log("Fetched books:", booksData);
+        setMyBooks(booksData);
+        setBooks(booksData);
+        setFallbackState(null);
+      }
 
-      setMyBooks(booksData);
-      setBooks(booksData);  // Set the books state to display
       setShowCategories(false);
       setShowBooks(true);
       setShowBackButton(true);
     } catch (error) {
       console.error('Error fetching my books:', error.message);
+      setFallbackState('error');
+      setMyBooks([]);
+      setBooks([]);
+      setShowCategories(false);
+      setShowBooks(true);
+      setShowBackButton(true);
     }
   };
 
+
   const handleMyBooksClick = () => {
-    fetchMyBooks();
+    if (!user) {
+      console.log("No user logged in");
+      setFallbackState('not_logged_in');
+      setShowCategories(false);
+      setShowBooks(true);
+      setShowBackButton(true);
+    } else {
+      fetchMyBooks();
+    }
   };
   // Add this function outside of the useEffect, but still within your component
   const updateUserProfile = async (user) => {
@@ -376,26 +400,35 @@ function App() {
   };
   const handleBookClick = async (book) => {
     try {
+      let bookId = book.ID ?? book.Id;
+      console.log(bookId)
       const { data: bookData, error: bookError } = await supabase
         .from('books')
         .select('*')
-        .eq('Id', book.Id)
+        .eq('Id', bookId)
         .single();
+      console.log(bookData)
       if (bookError) {
         console.error('Error fetching book:', bookError.message);
-        console.error('Book:', book);
-        const apiUrl = `https://auto-production.up.railway.app/store?key=true&url=${encodeURIComponent(book.Mirror_2)}&title=${encodeURIComponent(book.Title)}&author=${encodeURIComponent(book.Author || 'Unknown Author')}`;
-        await fetch(apiUrl);
-        setShowPopup(true);
-        return;
-      }
+        // If the book is not found in the database, we still show the book details page
+        setSelectedBookId(book.ID);
+        setShowBooks(false);
+        setShowBackButton(true);
+        setBookAuthor(book.Author);
+        setBookTitle(book.Title);
+        setBookUrl(book.Mirror_1);
+        setBookId(book.ID);
+        // We'll pass a flag to indicate that this book needs to be requested
+        setBookNeedsRequest(true);
+      } else {
+        setSelectedBookId(bookId);
       setShowBooks(false);
       setShowBackButton(true);
-      setSelectedBookId(book.Id);
+      setBookNeedsRequest(false);
       navigate(`/books/${book.Id}`);
-      
-    } catch (error) {
-      console.error('Error fetching book:', error.message);
+     
+    }  } catch (error) {
+      console.error('Error handling book click:', error.message);
     }
   };
 
@@ -435,11 +468,20 @@ function App() {
   // Helper function to map category names to icons
   const getCategoryIcon = (categoryName) => {
     const iconMap = {
+      'My Books': 'Book',
       'Finance': 'DollarSign',
-      'Product management': 'Briefcase',
-      'Personal development': 'User',
-      // Add more mappings as needed
+      'Product Management': 'Briefcase',
+      'Personal Development': 'User',
+      'New': 'Plus',
+      'Happiness': 'Smile',
+      'Women\'s Health': 'Heart',
+      'Philosophy': 'Brain',
+      'Biographies': 'Users',
+      'Creativity': 'Paintbrush',
+      'Entrepreneurship': 'TrendingUp',
+      'History': 'Clock'
     };
+  
     return iconMap[categoryName] || 'Folder'; // Fallback to 'Folder' if no match
   };
 
@@ -497,14 +539,17 @@ function App() {
     }
   
     setIsLoading(true);
+    let data = null;  // Initialize 'data' outside the try block
+  
     try {
       const response = await fetch(`https://auto-production.up.railway.app/search?key=${encodeURIComponent(searchTerm)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
-      
+      data = await response.json();
+  
       if (data.docs && Array.isArray(data.docs)) {
+        console.log('Books:', data.docs);
         setBooks(data.docs.slice(0, 10));
         setShowCategories(false);
         setShowBooks(true);
@@ -518,9 +563,30 @@ function App() {
       alert('An error occurred while searching. Please try again.');
     } finally {
       setIsLoading(false);
+      try {
+        const { data: supabaseData, error } = await supabase
+          .from('search_history')
+          .upsert(
+            { 
+              user_id: user?.id, 
+              search_term: searchTerm,
+              response: JSON.stringify(data?.docs || [])  // Safely handle undefined 'data'
+            }
+          );
+  
+        if (error) throw error;
+        console.log('Progress saved successfully');
+      } catch (error) {
+        console.error('Error saving progress:', error);
+      }
     }
   };
- 
+  const handleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
+    if (error) console.error('Error: ', error);
+  };
   return (
     <div className="App">
      
@@ -570,56 +636,71 @@ function App() {
             />
           </>
         )}
-        {showBooks && (
+ {showBooks && (
           <div className="book-list">
-            {books.map((book) => (
-              <div 
-                key={book.Id} 
-                className="book-item"
-                onClick={() => handleBookClick(book)}
-              >
-                {book.coverUrl && (
-                  <div className="book-cover-wrapper">
-                    <img 
-                      src={book.coverUrl} 
-                      alt={book.Title} 
-                      className="book-cover"
-                      style={{ display: 'block', margin: 'auto' }}
-                    />
-                  </div>
-                )}
-                <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
-                  <div>
-                    <h3 className="book-title-list">{book.Title}</h3>
-                    <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'}</p>
-                  </div>
-                  <button className="book-action">
-                    Start Reading
-                  </button>
-                </div>
-              </div>
-            ))}
+            <div className="fallback">
+            {fallbackState === 'not_logged_in' && (
+              <NotLoggedInFallback onSignInClick={handleSignIn} />
+            )}
+            {(fallbackState === 'no_books' || fallbackState === 'no_books_in_db') && (
+              <NoBooksFoundFallback />
+            )}
+            {fallbackState === 'error' && (
+              <ErrorFallback message="An error occurred while fetching your books. Please try again later." />
+            )}</div>
+            {!fallbackState && books.map((book) => (
+      <div 
+        key={book.Id} 
+        className="book-item"
+        onClick={() => handleBookClick(book)}
+      >
+        {book.coverUrl && (
+          <div className="book-cover-wrapper">
+            <img 
+              src={book.coverUrl} 
+              alt={book.Title} 
+              className="book-cover"
+              style={{ display: 'block', margin: 'auto' }}
+            />
           </div>
         )}
-        {selectedBookId && (
-          <BookDetails
-            bookId={selectedBookId}
-            onBackClick={handleBackClick}
-            chapterId={selectedChapter}        
-            showChapter={selectedChapter}
-            setShowChapter={setSelectedChapter}
-            userId={user?.id}
-          />
-        )}
+        <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
+          <div>
+            <h3 className="book-title-list">{book.Title}</h3>
+            <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'} - {book.Size ? book.Size : ''}</p>
+            <p className="book-author-list"></p>
+          </div>
+          <button className="book-action">
+            Start Reading
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+                {selectedBookId && (
+  <BookDetails
+    bookId={selectedBookId!== null?selectedBookId :bookId}
+    onBackClick={handleBackClick}
+    chapterId={selectedChapter}
+    showChapter={selectedChapter}
+    setShowChapter={setSelectedChapter}
+    userId={user?.id}
+    bookNeedsRequest={bookNeedsRequest}
+    bookTitle={bookTitle !== null ? bookTitle : undefined }
+    bookAuthor={bookAuthor !== null ? bookAuthor : undefined}
+    bookUrl={bookUrl !== null ? bookUrl : undefined }
+                 
+    />
+)}
       </main>
       {showPopup && (
-        <Popup 
-          onClose={() => setShowPopup(false)} 
-          bookTitle={books.find(b => b.id === selectedBookId)?.title || 'Selected book'}
-        />
-      )}
-    </div>
-     
+  <Popup 
+    onClose={() => setShowPopup(false)} 
+    bookTitle={books.find(b => b.id === selectedBookId)?.title || 'Selected book'}
+  />
+)}</div>
+    
   );
 }
 
