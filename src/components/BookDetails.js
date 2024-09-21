@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate} from 'react-router-dom';
 import { Share2, Bookmark, Book, ChevronRight , Clipboard } from 'lucide-react';
 import './BookDetails.css';
 import ChapterDetails from './ChapterDetails';
@@ -94,6 +94,7 @@ setChapterProgress(progress);
   const handleChapterClick = (chapter) => {
     const lastReadCard = chapterProgress[chapter.id]?.cardNumber || 0;
     navigate(`/books/${bookId}/chapters/${chapter.id}`);
+    // navigate(`/chapters/${chapter.id}`);
     setShowChapter({
       ...chapter,
       lastReadCard
@@ -101,12 +102,12 @@ setChapterProgress(progress);
     setCurrentChapterIndex(chapter.chapter_number - 1);
   };
 
-  const handleBackToBook = () => {
+  // const handleBackToBook = () => {
     
-    setShowChapter(null);
-    // navigate(`/books/${bookId}/chapters`);
-    navigate(`/books/${book.Id}`);
-  };
+  //   setShowChapter(null);
+  //   // navigate(`/books/${bookId}/chapters`);
+  //   navigate(`/books/${book.Id}`);
+  // };
 
   const getChapterClassName = (chapter) => {
     const baseClass = "rounded-lg transition-colors duration-200 cursor-pointer ";
@@ -141,7 +142,7 @@ const generateShareableUrl = async () => {
         <ChapterDetails 
           bookId={showChapter.book_id}
           chapterId={showChapter.id}
-          onBackClick={handleBackToBook}
+          // onBackClick={handleBackToBook}
           chapterTitle={showChapter.chapter_title}
           chapterNumber={showChapter.chapter_number}
           totalChapters={totalChapters}

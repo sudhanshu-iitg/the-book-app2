@@ -73,6 +73,7 @@ function App() {
   const [showBooks, setShowBooks] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedChapter, setSelectedChapter] = useState(false);
+  const [selectedChapterId, setSelectedChapterId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -97,19 +98,32 @@ function App() {
         setSelectedChapter(null);
         setShowBackButton(false);
       } else if (path.startsWith('/books/')) {
+        console.log("here2")
         const bookId = path.split('/')[2];
         setShowCategories(false);
         setShowBooks(false);
         setSelectedBookId(bookId);
         setShowBackButton(true);
-      } else if (path.startsWith('/recommender/') || path.startsWith('/profession/') || /^\/\d+$/.test(path)) {
+      }
+      // else if (path.startsWith('/chapters/')) {
+      //   console.log("here")
+      //   const chapterId = path.split('/')[2];
+      //   setShowCategories(false);
+      //   setShowBooks(false);
+      //   setSelectedChapter(true);
+      //   setSelectedChapterId(chapterId);
+      //   setShowBackButton(true);
+      // }
+      else if (path.startsWith('/recommender/') || path.startsWith('/profession/') || /^\/\d+$/.test(path)) {
         setShowCategories(false);
         setShowBooks(true);
         setSelectedBookId(null);
         setShowBackButton(true);
+        
       }
       
     };
+
 
     handleLocationChange();
 
@@ -145,6 +159,7 @@ function App() {
     fetchCategories();
     fetchRecommenders();
     fetchProfessions();
+    fetchBooksByCategory();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
@@ -179,7 +194,8 @@ function App() {
         setShowBooks(false);
         setSelectedBookId(null);
         setSelectedCategoryId(null);
-        setSelectedChapter(null);
+        setSelectedChapter(false);
+        setSelectedChapterId(null)
         setShowBackButton(false);
         setBooks([]);
       }
@@ -454,9 +470,10 @@ function App() {
 
   const handleBackClick = () => {
     if (selectedChapter) {
-      setSelectedChapter(null);
+      setSelectedChapter(false);
+      setSelectedChapterId(null)
       // navigate(`books/${selectedBookId}`);
-       navigate(`/books/${selectedBookId}`);
+      navigate(`/books/${selectedBookId}`);
     } 
     else if (selectedBookId) {
       setSelectedBookId(null);
@@ -472,7 +489,6 @@ function App() {
     }
     
   };
-
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {

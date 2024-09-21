@@ -17,7 +17,9 @@ root.render(
          <Route path="/:categoryId" element = {<App />} />
          <Route path="/books/:bookId" element={<App />} /> 
          <Route path="/books/:bookId/chapters/:chapterId" element={<App />} />
-         <Route path="/:categoryId/books/:bookId/:chapterId" element={<ChapterDetails/>} /> 
+         {/* <Route path="/chapters/:chapterId" element={<App />} /> */}
+         {/* <Route path="/books/:bookId/chapters" element={<BookDetails />} /> */}
+
 
     </Routes>
     {/* <App /> */}
