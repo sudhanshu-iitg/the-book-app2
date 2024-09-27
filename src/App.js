@@ -687,6 +687,7 @@ function App() {
     setShowChapter={setSelectedChapter}
     userId={user?.id}
     bookNeedsRequest={bookNeedsRequest}
+    setBookNeedsRequest={setBookNeedsRequest}
     bookTitle={bookTitle !== null ? bookTitle : undefined }
     bookAuthor={bookAuthor !== null ? bookAuthor : undefined}
     bookUrl={bookUrl !== null ? bookUrl : undefined }
