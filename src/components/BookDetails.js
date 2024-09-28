@@ -231,7 +231,7 @@ setChapterProgress(progress);
       {chapters.map((chapter) => (
         <div 
           key={chapter.id}
-          className={`chapter-item ${getChapterClassName(chapter)} ${newChapterIds.has(chapter.id) ? 'new-chapter' : ''}`}
+          className={`chapter-item ${getChapterClassName(chapter)} ${newChapterIds.has(chapter.id)&& bookNeedsRequest ? 'new-chapter' : ''}`}
           onClick={() => handleChapterClick(chapter)}
         >
           <span className={`chapter-number ${chapter.chapter_number === currentChapterIndex + 1 ? 'text-blue-500' : 'text-gray-500'}`}>
@@ -246,7 +246,7 @@ setChapterProgress(progress);
               ''}
           </span>
           <ChevronRight className="chapter-arrow" size={16} />
-          {newChapterIds.has(chapter.id) && (
+          {newChapterIds.has(chapter.id) && bookNeedsRequest && (
             <span className="new-chapter-badge">New</span>
           )}
         </div>
