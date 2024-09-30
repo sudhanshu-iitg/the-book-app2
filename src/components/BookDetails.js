@@ -9,7 +9,7 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BookDetails = ({ bookId, onBackClick, showChapter, setShowChapter, userId, bookNeedsRequest, setBookNeedsRequest, bookTitle, bookAuthor, bookUrl }) => {
+const BookDetails = ({ bookId, onBackClick, showChapter, setShowChapter, userId, bookNeedsRequest, setBookNeedsRequest, bookTitle, bookAuthor, bookUrl, selectedChapterId }) => {
   const navigate = useNavigate();
   const [book, setBook] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -326,10 +326,11 @@ setChapterProgress(progress);
     return (
       <div className="book-details-container">
         <ChapterDetails 
-          bookId={showChapter.book_id}
-          chapterId={showChapter.id}
+          bookId={showChapter.book_id??bookId}
+          chapterId={showChapter.id ?? selectedChapterId}
           chapterTitle={showChapter.chapter_title}
           chapterNumber={showChapter.chapter_number}
+          
           totalChapters={totalChapters}
           userId={userId}
           lastReadCard={showChapter.lastReadCard}

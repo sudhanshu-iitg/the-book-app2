@@ -1,5 +1,6 @@
 import React, { useState, useEffect,useRef } from 'react';
 import { Menu, X, BookOpen, FileText, MessageSquare, CreditCard, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { createClient } from "@supabase/supabase-js";
 import './ChapterDetails.css';
 import { useSwipeable } from 'react-swipeable';
@@ -117,6 +118,7 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
 };
 
 const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterNumber,totalChapters, userId,lastReadCard, bookTitle }) => {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [contentType, setContentType] = useState('biteSize');
   const [chapterData, setChapterData] = useState({});
@@ -138,7 +140,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
     }
   };
   
-  const fetchChapter = async (direction) => {
+  const fetchChapter = async (direction,book_id) => {
     setLoading(true);
     setError(null);
 
@@ -148,37 +150,26 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
       const { data, error } = await supabase
         .from('chapter_contents')
         .select('id, chapter_title, chapter_number, content')
-        .eq('book_id', bookId)
+        .eq('book_id', bookId??book_id)
         .eq('chapter_number', targetChapterNumber)
         .single();
 
       if (error) throw error;
 
       if (data) {
-        setCurrentChapter({
-          id: data.id,
-          title: data.chapter_title,
-          number: data.chapter_number
-        });
-        setChapterData({
-          fullContent: data.content,
-          biteSize: null,
-          summary: null
-        });
-        setContentType('biteSize'); // Reset to default view
-        setCurrentCard(0); 
+        navigate(`/books/${bookId}/chapters/${data.id}`);
       } else {
         setError(`No ${direction} chapter available.`);
       }
     } catch (error) {
-      console.error(`Error fetching ${direction} chapter:`, error);
+      console.error(`Error fetching ${direction} chapter:${targetChapterNumber}`, error,targetChapterNumber);
       setError(`Failed to load ${direction} chapter. Please try again later.`);
     } finally {
       setLoading(false);
     }
   };
   const fetchNextChapter = () => {
-    fetchChapter('next');
+    fetchChapter('next',bookId);
   };
   const handleContentClick = (event) => {
     if (menuOpen && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
@@ -253,6 +244,41 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
+  const fetchChapterDetails = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error } = await supabase
+        .from('chapter_contents')
+        .select('id, chapter_title, chapter_number, content')
+        .eq('id', chapterId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setCurrentChapter({
+          id: data.id,
+          title: data.chapter_title,
+          number: data.chapter_number
+        });
+      } else {
+        setError('Chapter not found.');
+      }
+    } catch (error) {
+      console.error('Error fetching chapter details:', error);
+      setError('Failed to load chapter details. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (!chapterTitle || !chapterNumber) {
+      fetchChapterDetails();
+    }
+  }, [chapterId]);
+
 
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
@@ -286,7 +312,9 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
           <button onClick={toggleMenu} className="menu-button">
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <h2 className="chapter-navigation">{bookTitle || '-'}</h2>
+          <h2 className="chapter-navigation">
+  {bookTitle ? (bookTitle.length > 28 ? `${bookTitle.substring(0, 28)}...` : bookTitle) : '-'}
+</h2>
         </div>
         <div className="header-right">
           <button 

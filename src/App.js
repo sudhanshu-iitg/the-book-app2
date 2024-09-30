@@ -20,33 +20,6 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl
 const supabaseKey = process.env.REACT_APP_supabaseKey
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-const Toast = ({ message, isVisible, onClose }) => {
-  useEffect(() => {
-    if (isVisible) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isVisible, onClose]);
-
-  if (!isVisible) return null;
-
-  return (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      backgroundColor: '#333',
-      color: 'white',
-      padding: '10px 20px',
-      borderRadius: '5px',
-      zIndex: 1000
-    }}>
-      {message}
-    </div>
-  );
-};
 const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, isLoading }) => {
   return (
     <div className="search-container">
@@ -101,23 +74,29 @@ function App() {
         setSelectedCategoryId(null);
         setSelectedChapter(null);
         setShowBackButton(false);
-      } else if (path.startsWith('/books/')) {
-        console.log("here2")
+        
+      } 
+      
+      else if (path.includes('/chapters/')) {
+        const bookId = path.split('/')[2];
+        const chapterId = path.split('/')[4];
+        setSelectedBookId(bookId);
+        setShowCategories(false);
+        setShowBooks(false);
+        setSelectedChapter(true);
+        setSelectedChapterId(chapterId);
+        setShowBackButton(true);
+      }
+      else if (path.startsWith('/books/')) {
+        console.log(path.split('/'))
         const bookId = path.split('/')[2];
         setShowCategories(false);
+        setSelectedChapter(false);
         setShowBooks(false);
         setSelectedBookId(bookId);
         setShowBackButton(true);
       }
-      // else if (path.startsWith('/chapters/')) {
-      //   console.log("here")
-      //   const chapterId = path.split('/')[2];
-      //   setShowCategories(false);
-      //   setShowBooks(false);
-      //   setSelectedChapter(true);
-      //   setSelectedChapterId(chapterId);
-      //   setShowBackButton(true);
-      // }
+      
       else if (path.startsWith('/recommender/') || path.startsWith('/profession/') || /^\/\d+$/.test(path)) {
         setShowCategories(false);
         setShowBooks(true);
@@ -486,24 +465,25 @@ function App() {
   };
 
   const fetchBooksByCategory = async (categoryId) => {
-    try {  
-      const { data: booksData, error } = await supabase
-        .from('books')
-        .select('*')
-        .eq('category_id', categoryId);
-  
-      if (error) throw error;
-  
-      setBooks(booksData);
-      setShowCategories(false);
-      setShowBooks(true);
-      setSelectedCategoryId(categoryId);
-      setShowBackButton(true);
-      navigate(`/${categoryId}`);
-    } catch (error) {
-      console.error('Error fetching books:', error);
-    }
-  };
+    console.log('fetching books by category:', categoryId);
+    if (categoryId) {
+      try {  
+        const { data: booksData, error } = await supabase
+          .from('books')
+          .select('*')
+          .eq('category_id', categoryId);
+    
+        if (error) throw error;
+    
+        setBooks(booksData);
+        setShowCategories(false);
+        setShowBooks(true);
+        setSelectedCategoryId(categoryId);
+        setShowBackButton(true);
+        navigate(`/${categoryId}`);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+  }}};
 
 
   // const updateHistory = (newState) => {
@@ -638,17 +618,7 @@ function App() {
         )}
  {showBooks && (
           <div className="book-list">
-            <div className="fallback">
-            {fallbackState === 'not_logged_in' && (
-              <NotLoggedInFallback onSignInClick={handleSignIn} />
-            )}
-            {(fallbackState === 'no_books' || fallbackState === 'no_books_in_db') && (
-              <NoBooksFoundFallback />
-            )}
-            {fallbackState === 'error' && (
-              <ErrorFallback message="An error occurred while fetching your books. Please try again later." />
-            )}</div>
-            {!fallbackState && books.map((book) => (
+            { books.map((book) => (
       <div 
         key={book.Id} 
         className="book-item"
@@ -681,6 +651,7 @@ function App() {
                 {selectedBookId && (
   <BookDetails
     bookId={selectedBookId!== null?selectedBookId :bookId}
+    selectedChapterId={selectedChapterId}
     onBackClick={handleBackClick}
     chapterId={selectedChapter}
     showChapter={selectedChapter}
@@ -695,12 +666,7 @@ function App() {
     />
 )}
       </main>
-      {showPopup && (
-  <Popup 
-    onClose={() => setShowPopup(false)} 
-    bookTitle={books.find(b => b.id === selectedBookId)?.title || 'Selected book'}
-  />
-)}</div>
+      </div>
     
   );
 }
