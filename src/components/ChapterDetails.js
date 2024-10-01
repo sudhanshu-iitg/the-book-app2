@@ -140,29 +140,40 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
     }
   };
   
-  const fetchChapter = async (direction,book_id) => {
+  const fetchChapter = async (direction, book_id) => {
     setLoading(true);
     setError(null);
-
+  
     const targetChapterNumber = direction === 'next' ? currentChapter.number + 1 : currentChapter.number - 1;
-
+  
     try {
       const { data, error } = await supabase
         .from('chapter_contents')
         .select('id, chapter_title, chapter_number, content')
-        .eq('book_id', bookId??book_id)
+        .eq('book_id', bookId ?? book_id)
         .eq('chapter_number', targetChapterNumber)
         .single();
-
+  
       if (error) throw error;
-
+  
       if (data) {
-        navigate(`/books/${bookId}/chapters/${data.id}`);
+        setCurrentChapter({
+          id: data.id,
+          title: data.chapter_title,
+          number: data.chapter_number
+        });
+        setInitialCard(0);
+        setCurrentCard(0);
+        setChapterData({}); // Clear previous chapter data
+        navigate(`/books/${bookId}/chapters/${data.id}`, { replace: true });
+        
+        // Fetch the new chapter's content
+        fetchContentData(contentType);
       } else {
         setError(`No ${direction} chapter available.`);
       }
     } catch (error) {
-      console.error(`Error fetching ${direction} chapter:${targetChapterNumber}`, error,targetChapterNumber);
+      console.error(`Error fetching ${direction} chapter:${targetChapterNumber}`, error, targetChapterNumber);
       setError(`Failed to load ${direction} chapter. Please try again later.`);
     } finally {
       setLoading(false);
@@ -181,13 +192,18 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
     preventDefaultTouchmoveEvent: true,
     trackMouse: true
   });
+  useEffect(() => {
+    if (currentChapter.id && contentType) {
+      fetchContentData(contentType);
+    }
+  }, [currentChapter.id, contentType]);
   const fetchContentData = async (type) => {
     setLoading(true);
     setError(null);
-
+  
     try {
       let data;
-
+  
       switch (type) {
         case 'summary':
           const { data: summaryData, error: summaryError } = await supabase
@@ -203,10 +219,13 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
             .from('cards')
             .select('*')
             .eq('chapter_id', currentChapter.id);
-            setInitialCard(Math.min(lastReadCard, biteSizeData.length - 1));
-            handleCardChange(biteSizeData[0].id,biteSizeData.length,biteSizeData[0].card_num);
           if (biteSizeError) throw biteSizeError;
           data = biteSizeData;
+          setInitialCard(0);
+          setCurrentCard(0);
+          if (data.length > 0) {
+            handleCardChange(data[0].id, data.length, 1);
+          }
           break;
         case 'fullContent':
           // We already have full content from fetchChapter, so just use that
@@ -215,7 +234,7 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
         default:
           data = null;
       }
-
+  
       setChapterData(prevData => ({
         ...prevData,
         [type]: data
