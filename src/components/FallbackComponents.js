@@ -14,8 +14,7 @@ export const NoBooksFoundFallback = () => (
   <div className="fallback-container">
     <BookX size={48} style={{marginBottom: '1rem'}} className="fallback-icon" />
     <h2>No books found</h2>
-    <p>You haven't added any books to your collection yet.</p>
-    <p>Start reading to see your books here!</p>
+    <p>We are working on improving this experience right now.</p>
   </div>
 );
 export const ErrorFallback = ({ message }) => (

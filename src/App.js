@@ -485,11 +485,6 @@ function App() {
         console.error('Error fetching books:', error);
   }}};
 
-
-  // const updateHistory = (newState) => {
-  //   window.history.replaceState(newState, '', window.location.pathname);
-  // };
-
   const handleBackClick = () => {
     if (selectedChapter) {
       setSelectedChapter(false);
@@ -519,6 +514,8 @@ function App() {
     }
   
     setIsLoading(true);
+    setShowCategories(false);
+    setShowBooks(false);
     let data = null;  // Initialize 'data' outside the try block
   
     try {
@@ -527,6 +524,7 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       data = await response.json();
+      console.log(data)
   
       if (data.docs && Array.isArray(data.docs)) {
         console.log('Books:', data.docs);
@@ -569,7 +567,6 @@ function App() {
   };
   return (
     <div className="App">
-     
       <header>
         <div className="top-nav">
         <h1 onClick={() => {
@@ -599,7 +596,28 @@ function App() {
         </div>
       </header>
       <main>
-        {showCategories && (
+      {isLoading && (
+        <div className="processing-info mt-4 p-4 bg-blue-50 rounded-lg shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div>
+                <p className="text-blue-700 font-semibold text-lg">
+                  Searching for what you are looking for...
+                </p>
+                <p className="text-blue-600 text-sm">
+                  Should be here any second now
+                </p>
+              </div>
+            </div>
+            <div className="processing-animation">
+              <div className="dot"></div>
+              <div className="dot"></div>
+              <div className="dot"></div>
+            </div>
+          </div>
+        </div>
+      )}
+ {showCategories && (
           <>
             <Categories 
               categories={categories} 
@@ -618,37 +636,44 @@ function App() {
         )}
  {showBooks && (
           <div className="book-list">
-            { books.map((book) => (
-      <div 
-        key={book.Id} 
-        className="book-item"
-        onClick={() => handleBookClick(book)}
-      >
-        {book.coverUrl && (
-          <div className="book-cover-wrapper">
-            <img 
-              src={book.coverUrl} 
-              alt={book.Title} 
-              className="book-cover"
-              style={{ display: 'block', margin: 'auto' }}
-            />
+            {books.length > 0 ? (
+              books.map((book) => (
+                <div 
+                  key={book.Id} 
+                  className="book-item"
+                  onClick={() => handleBookClick(book)}
+                >
+                  {book.coverUrl && (
+                    <div className="book-cover-wrapper">
+                      <img 
+                        src={book.coverUrl} 
+                        alt={book.Title} 
+                        className="book-cover"
+                        style={{ display: 'block', margin: 'auto' }}
+                      />
+                    </div>
+                  )}
+                  <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
+                    <div>
+                      <h3 className="book-title-list">{book.Title}</h3>
+                      <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'} - {book.Size ? book.Size : ''}</p>
+                      <p className="book-author-list"></p>
+                    </div>
+                    <button className="book-action">
+                      Start Reading
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <NoBooksFoundFallback />
+              </div>
+            )}
           </div>
         )}
-        <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
-          <div>
-            <h3 className="book-title-list">{book.Title}</h3>
-            <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'} - {book.Size ? book.Size : ''}</p>
-            <p className="book-author-list"></p>
-          </div>
-          <button className="book-action">
-            Start Reading
-          </button>
-        </div>
-      </div>
-    ))}
-  </div>
-)}
-                {selectedBookId && (
+
+ {selectedBookId && (
   <BookDetails
     bookId={selectedBookId!== null?selectedBookId :bookId}
     selectedChapterId={selectedChapterId}
@@ -667,7 +692,6 @@ function App() {
 )}
       </main>
       </div>
-    
   );
 }
 
