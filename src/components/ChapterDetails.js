@@ -100,10 +100,9 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
       );
     case 'fullContent':
       return (
-        <div className="content-card">
-          <h3 className="content-title">Full Chapter Content</h3>
-          <p>{content || 'Full content not available.'}</p>
-        </div>
+        
+          <pre>{content || 'Full content not available.'}</pre>
+        
       );
     case 'chat':
       return (
@@ -228,8 +227,14 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
           }
           break;
         case 'fullContent':
-          // We already have full content from fetchChapter, so just use that
-          data = chapterData.fullContent;
+          const { data: chapterData, error: chapterDataError } = await supabase
+            .from('chapter_contents')
+            .select('*')
+            .eq('id', currentChapter.id);
+          if (chapterDataError) throw chapterDataError;
+          console.log(chapterData[0].content);
+          data = chapterData[0].content.trimStart();
+        
           break;
         default:
           data = null;
