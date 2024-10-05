@@ -98,12 +98,12 @@ const ContentSection = ({ type, content, onNavigate,isLastChapter, onNextChapter
           <p>{content || 'No summary available.'}</p>
         </div>
       );
-    case 'fullContent':
-      return (
-        
-          <pre>{content || 'Full content not available.'}</pre>
-        
-      );
+      case 'fullContent':
+        return (
+          <div className="content-card full-content">
+            <pre>{content || 'Full content not available.'}</pre>
+          </div>
+        );
     case 'chat':
       return (
         <div className="content-card">
@@ -379,19 +379,20 @@ const ChapterDetails = ({ bookId, chapterId, chapterTitle, onBackClick ,chapterN
             ))}
           </div>
         )}
-        <div  onClick={handleContentClick}>
-        <ContentSection
-            type={contentType}
-            content={chapterData[contentType]}
-            isLastChapter={currentChapter.number >= totalChapters}
-            onNextChapter={fetchNextChapter}
-            onCardChange={handleCardChange} 
-            initialCard={currentCard}
-            setCurrentCard={setCurrentCard}
-          />
-        </div>
+          <div className="main-content" onClick={handleContentClick}>
+    <ContentSection
+      type={contentType}
+      content={chapterData[contentType]}
+      isLastChapter={currentChapter.number >= totalChapters}
+      onNextChapter={fetchNextChapter}
+      onCardChange={handleCardChange} 
+      initialCard={currentCard}
+      setCurrentCard={setCurrentCard}
+    />
+  </div>
+</div>
         
-      </div>
+      
     </div>
   );
 };

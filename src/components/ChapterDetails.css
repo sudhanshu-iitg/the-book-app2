@@ -304,3 +304,44 @@ p {
     justify-content: space-between;
   }
 }
+
+/* Existing styles... */
+
+/* Add these new styles for the full content view */
+.content-card.full-content {
+  max-height: calc(100vh - 200px); /* Adjust based on your header height */
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 20px;
+}
+
+.content-card.full-content pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Adjust the main content area to take full width when sidebar is closed */
+.content-wrapper {
+  display: flex;
+  gap: 24px;
+  height: calc(100vh - 150px); /* Adjust based on your header height */
+  overflow: hidden;
+}
+
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .content-card.full-content {
+    font-size: 12px;
+    padding: 15px;
+  }
+}
