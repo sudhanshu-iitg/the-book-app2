@@ -330,7 +330,7 @@ setChapterProgress(progress);
           chapterId={showChapter.id ?? selectedChapterId}
           chapterTitle={showChapter.chapter_title}
           chapterNumber={showChapter.chapter_number}
-          
+          metadata = {showChapter.metadata}
           totalChapters={totalChapters}
           userId={userId}
           lastReadCard={showChapter.lastReadCard}
