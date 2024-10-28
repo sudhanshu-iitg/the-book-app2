@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import './ChapterDetails.css';
 import { useSwipeable } from 'react-swipeable';
 import saveReadingProgress from './saveReadingProgress';
-
+import MetadataDisplay from './Metadata.js';
 const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -103,6 +103,13 @@ const ChapterDetails = ({
       setLoading(false);
     }
   };
+  const handleMetadataUpdate = (newMetadata) => {
+    setMetadata(newMetadata);
+    setCurrentChapter(prev => ({
+      ...prev,
+      metadata: newMetadata
+    }));
+  };
 
   useEffect(() => {
     if (!chapterTitle || !chapterNumber) {
@@ -153,12 +160,16 @@ const ChapterDetails = ({
 
       <h3>Chapter {currentChapter.number || '-'} - {currentChapter.title || 'Untitled Chapter'}</h3>
 
-      <div className="content-wrapper">
-        <div className="content-card">
-          <h3 className="content-title">Chapter Summary</h3>
-          <p>{metadata || currentChapter.metadata || 'No summary available.'}</p>
-        </div>
-      </div>
+      <div >
+  <div >
+  <MetadataDisplay 
+            metadata={metadata || currentChapter.metadata}
+            chapterId={chapterId}
+            bookId={bookId}
+            onMetadataUpdate={handleMetadataUpdate}
+          />
+  </div>
+</div>
     </div>
   );
 };

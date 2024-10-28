@@ -519,7 +519,7 @@ function App() {
     let data = null;  // Initialize 'data' outside the try block
   
     try {
-      const response = await fetch(`https://auto-production.up.railway.app/search?key=${encodeURIComponent(searchTerm)}`);
+      const response = await fetch(`https://thebookapp-production-eb6d.up.railway.app/search?key=${encodeURIComponent(searchTerm)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
