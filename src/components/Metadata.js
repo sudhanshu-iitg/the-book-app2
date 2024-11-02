@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, Book, Loader } from 'lucide-react';
 import { createClient } from "@supabase/supabase-js";
-
+import './Metadata.css';
 const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -9,6 +9,28 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const Alert = ({ variant = "default", title, children }) => {
   // ... Alert component remains the same
 };
+
+const ProcessingAnimation = () => (
+  <div className="processing-info mt-4 p-4 bg-blue-50 rounded-lg shadow-md">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center">
+        <div>
+          <p className="text-blue-700 font-semibold text-lg">
+            Generating chapter summary...
+          </p>
+          <p className="text-blue-600 text-sm">
+            This may take a few moments.
+          </p>
+        </div>
+      </div>
+      <div className="processing-animation">
+        <div className="dot"></div>
+        <div className="dot"></div>
+        <div className="dot"></div>
+      </div>
+    </div>
+  </div>
+);
 
 const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -55,7 +77,6 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
     }
   };
 
-  // Automatically start generation when no metadata is present
   useEffect(() => {
     if (!metadata && requestStatus === 'idle') {
       generateMetadata();
@@ -65,24 +86,7 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
   if (!metadata || isGenerating) {
     return (
       <div className="p-6 space-y-6">
-        <div className="mt-4 p-6 bg-blue-50 rounded-lg shadow-md">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-700 font-semibold text-lg">
-                Generating chapter summary...
-              </p>
-              <p className="text-blue-600 text-sm">
-                This may take a few moments.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-            </div>
-          </div>
-        </div>
-
+        <ProcessingAnimation />
         {requestStatus === 'error' && (
           <div className="mt-4">
             <Alert variant="error" title="Error Generating Summary">
