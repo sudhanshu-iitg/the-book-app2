@@ -1,25 +1,90 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link, useNavigate, useParams ,useLocation} from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate,useLocation} from 'react-router-dom';
 import { useEffect, useState } from "react";
-// import { useNavigate,useLocation } from "react-router-dom";
 import './App.css';
 import {  pdfjs } from "react-pdf";
 import { createClient } from "@supabase/supabase-js";
 import {  Search,ArrowLeft } from "lucide-react";
 import Categories from './components/Categories.js';
-import RecommendedBooks from './components/RecommendedBooks';
-import ProfessionBooks from './components/ProfessionBooks';
-import './components/RecommendedBooks.css';
-import './components/ProfessionBooks.css';
 import SignInButton from './components/SignInButton';
 import SignOutButton from './components/SignOutButton';
 import BookDetails from './components/BookDetails';
 import { NotLoggedInFallback, NoBooksFoundFallback,ErrorFallback  } from './components/FallbackComponents';
+import PopularTopics from './components/PopularTopics';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
 const supabaseKey = process.env.REACT_APP_supabaseKey
 const supabase = createClient(supabaseUrl, supabaseKey)
+// Add these imports at the top of App.js
 
+
+const HeroSection = ({ searchTerm, setSearchTerm, handleSearch, isLoading }) => {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  return (
+    <div className="hero-section">
+      <h1 className="hero-title">Any Book, Summarized</h1>
+      <p className="hero-subtitle">Discover and digest key insights from thousands of books in minutes</p>
+      <div className="search-container-hero">
+        <Search className="search-icon" size={20} />
+        <input 
+          type="text" 
+          placeholder="Search for books or topics..." 
+          className="hero-search-input"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isLoading}
+        />
+      </div>
+    </div>
+  );
+};
+
+
+const SummarySection = () => {
+  return (
+    <div className="summary-section">
+      <h2 className="section-title">How Our Summaries Work</h2>
+      <div className="summary-content">
+        <div className="summary-header">
+          <button className="back-button">
+            <ArrowLeft size={20} />
+          </button>
+          <div className="book-title">Rich Dad Poor Dad</div>
+        </div>
+        
+        <div className="summary-body">
+          <h2>Rich Dad Poor Dad</h2>
+          <div className="chapter-nav">
+            <span>‹ Previous Chapter</span>
+            <span>Next Chapter ›</span>
+          </div>
+          
+          <h3>Chapter 2 - Two Dads, Two Worlds: The Seeds of Financial Wisdom</h3>
+          
+          <div className="summary-section">
+            <h4>Key Themes</h4>
+            <p>This book explores the contrasting financial philosophies of two fathers, one rich and one poor, and how these contrasting views shape their lives. It emphasizes the importance of financial education, challenging the traditional mindset of working for money.</p>
+            
+            <h4>Case Studies</h4>
+            <p>The book uses the author's own life as a primary case study, contrasting the financial choices and outcomes of his two fathers. The author's rich dad, despite not having a formal education, became wealthy through investing.</p>
+            
+            <h4>Key Questions & Answers</h4>
+            <div className="qa-section">
+              <p><strong>Q1: What is the main difference between the author's two fathers' approaches to money?</strong></p>
+              <p>The author's rich dad believed in financial education and making money work for him, while his poor dad focused on working for money and relying on traditional financial security.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, isLoading }) => {
   return (
     <div className="search-container">
@@ -47,11 +112,8 @@ function App() {
   const [categories, setCategories] = useState([]);
   const [selectedChapter, setSelectedChapter] = useState(false);
   const [selectedChapterId, setSelectedChapterId] = useState(null);
-  const [showPopup, setShowPopup] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-  const [recommenders, setRecommenders] = useState([]);
-  const [professions, setProfessions] = useState([]);
   const [user, setUser] = useState(null);
   const [showBackButton, setShowBackButton] = useState(false);
   const [recentlyReadBooks, setRecentlyReadBooks] = useState([]);
@@ -140,8 +202,6 @@ function App() {
     handleAuthChange();
 
     fetchCategories();
-    fetchRecommenders();
-    fetchProfessions();
     fetchBooksByCategory();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -311,72 +371,7 @@ function App() {
     } catch (error) {
       console.error('Error fetching recently read books:', error.message);
     }
-  };
-  const fetchRecommenders = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('recommenders')
-        .select('*')
-        .limit(3);  // Adjust this number as needed
-
-      if (error) throw error;
-      setRecommenders(data);
-    } catch (error) {
-      console.error('Error fetching recommenders:', error.message);
-    }
-  };
-  const fetchProfessions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('professions')
-        .select('*')
-        .limit(3);  // Adjust this number as needed
-
-      if (error) throw error;
-      setProfessions(data);
-    } catch (error) {
-      console.error('Error fetching professions:', error.message);
-    }
-  };
-  const fetchBooksByRecommender = async (recommenderId) => {
-    try {
-      const { data, error } = await supabase
-        .from('books')
-        .select('*')
-        .eq('recommender_id', recommenderId);
-
-      if (error) throw error;
-      setBooks(data);
-      setShowCategories(false);
-      setShowBooks(true);
-      setShowBackButton(true);
-      navigate(`/recommender/${recommenderId}`);
-      // You might want to update breadcrumbs here as well
-    } catch (error) {
-      console.error('Error fetching books by recommender:', error.message);
-    }
-    
-  };
-
-  const fetchBooksByProfession = async (professionId) => {
-    try {
-      const { data, error } = await supabase
-        .from('books')
-        .select('*')
-        .eq('profession_id', professionId);
-
-      if (error) throw error;
-      setBooks(data);
-      setShowCategories(false);
-      setShowBooks(true);
-      setShowBackButton(true);
-      navigate(`/profession/${professionId}`);
-      // Update breadcrumbs here
-    } catch (error) {
-      console.error('Error fetching books by profession:', error.message);
-    }
-    
-  };
+  }; 
   const handleBookClick = async (book) => {
     try {
       let bookId = book.ID ?? book.Id;
@@ -409,20 +404,6 @@ function App() {
     }  } catch (error) {
       console.error('Error handling book click:', error.message);
     }
-  };
-
-
-  const Popup = ({ onClose, bookTitle }) => {
-    return (
-      <div className="popup-overlay">
-        <div className="popup-content">
-          <h2>New book detected</h2>
-          <p>We have begun summarizing this book. </p>
-          <p>It will show up in the new books category shortly.</p>
-          <button onClick={onClose}>Close</button>
-        </div>
-      </div>
-    );
   };
   const fetchCategories = async () => {
     try {
@@ -587,12 +568,7 @@ function App() {
               <ArrowLeft size={20} />
             </button>
           )}
-          <SearchBar
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            handleSearch={handleSearch}
-            isLoading={isLoading}
-          />
+          
         </div>
       </header>
       <main>
@@ -617,23 +593,21 @@ function App() {
           </div>
         </div>
       )}
- {showCategories && (
-          <>
-            <Categories 
-              categories={categories} 
-              onCategoryClick={fetchBooksByCategory}
-              onMyBooksClick={handleMyBooksClick}
-            />
-            <ProfessionBooks 
-              professions={professions} 
-              onProfessionClick={fetchBooksByProfession} 
-            />
-            <RecommendedBooks 
-              recommenders={recommenders} 
-              onRecommenderClick={fetchBooksByRecommender} 
-            />
-          </>
-        )}
+  {showCategories && (
+      <>
+         <HeroSection 
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      handleSearch={handleSearch}
+      isLoading={isLoading}
+    />
+        <PopularTopics 
+      categories={categories} 
+      onTopicClick={(categoryId) => fetchBooksByCategory(categoryId)} 
+    />
+        <SummarySection />
+      </>
+    )}
  {showBooks && (
           <div className="book-list">
             {books.length > 0 ? (

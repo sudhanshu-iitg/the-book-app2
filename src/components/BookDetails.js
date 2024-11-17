@@ -203,10 +203,7 @@ setChapterProgress(progress);
       
     } catch (error) {
       console.error('Error requesting book:', error.message);
-      // setRequestStatus('success');
       pollForNewChapters();
-      // setRequestStatus('error');
-      // setIsProcessing(false);
     }
   };
 

@@ -1,7 +1,6 @@
 .App {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
 }
 
 .book-tiles {
@@ -34,7 +33,6 @@
   background-color: black;
   color: white;
   border: none;
-  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
@@ -49,7 +47,6 @@
 }
 
 .auth-buttons button {
-  padding: 5px 10px;
   background-color: black;
   color: white;
   border: none;
@@ -98,7 +95,6 @@
 .App {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
 }
 
 .categories-section {
@@ -431,4 +427,197 @@ button:hover {
   padding: 20px;
   display: flex;
   justify-content: flex-start;
+}
+/* Hero Section */
+.hero-section {
+  text-align: center;
+  padding: 10px 20px;
+  background-color: #fff;
+}
+
+.hero-title {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #000;
+}
+
+.hero-subtitle {
+  font-size: 20px;
+  color: #666;
+  margin-bottom: 32px;
+}
+
+.search-container-hero {
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 24px;
+  padding: 12px 24px;
+}
+
+.search-icon {
+  color: #666;
+  margin-right: 12px;
+}
+
+.hero-search-input {
+  width: 100%;
+  border: none;
+  font-size: 16px;
+  outline: none;
+  background: transparent;
+}
+
+/* Popular Topics Section */
+.popular-topics-section {
+  padding: 20px 20px;
+  background-color: #fff;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 32px;
+  color: #000;
+}
+
+.topics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.topic-card {
+  background-color: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.topic-card:hover {
+  transform: translateY(-2px);
+}
+
+.topic-card h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #000;
+}
+
+.topic-card p {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Summary Section */
+.summary-section {
+  padding: 40px 20px;
+  background-color: #f8f9fa;
+}
+
+.summary-content {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.summary-header {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 16px;
+}
+
+.book-title {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.summary-body {
+  padding: 24px;
+}
+
+.chapter-nav {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+  color: #0066FF;
+  font-size: 14px;
+}
+
+.qa-section {
+  margin-top: 24px;
+}
+
+.qa-section strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .topics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .hero-title {
+    font-size: 36px;
+  }
+  
+  .hero-subtitle {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.topic-card {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.topic-card h3 {
+  margin-top: 0.5rem;
+  color: #374151;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 2rem 1rem 1rem;
 }
