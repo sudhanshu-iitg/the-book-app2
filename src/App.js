@@ -9,6 +9,7 @@ import Categories from './components/Categories.js';
 import SignInButton from './components/SignInButton';
 import SignOutButton from './components/SignOutButton';
 import BookDetails from './components/BookDetails';
+import BookCover from './components/BookCover';
 import { NotLoggedInFallback, NoBooksFoundFallback,ErrorFallback  } from './components/FallbackComponents';
 import PopularTopics from './components/PopularTopics';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
@@ -609,43 +610,37 @@ function App() {
       </>
     )}
  {showBooks && (
-          <div className="book-list">
-            {books.length > 0 ? (
-              books.map((book) => (
-                <div 
-                  key={book.Id} 
-                  className="book-item"
-                  onClick={() => handleBookClick(book)}
-                >
-                  {book.coverUrl && (
-                    <div className="book-cover-wrapper">
-                      <img 
-                        src={book.coverUrl} 
-                        alt={book.Title} 
-                        className="book-cover"
-                        style={{ display: 'block', margin: 'auto' }}
-                      />
-                    </div>
-                  )}
-                  <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
-                    <div>
-                      <h3 className="book-title-list">{book.Title}</h3>
-                      <p className="book-author-list">{book.Author ? book.Author : 'Unknown Author'} - {book.Size ? book.Size : ''}</p>
-                      <p className="book-author-list"></p>
-                    </div>
-                    <button className="book-action">
-                      Start Reading
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <NoBooksFoundFallback />
-              </div>
-            )}
-          </div>
-        )}
+  <div className="book-list">
+    {books.length > 0 ? (
+      books.map((book) => (
+        <div 
+      key={book.Id}
+      className="book-item"
+      onClick={() => handleBookClick(book)}
+    >
+      <div className="book-cover-wrapper">
+        <BookCover book={book} />
+      </div>
+      <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
+        <div>
+          <h3 className="book-title-list">{book.Title}</h3>
+          <p className="book-author-list">
+            {book.Author ? book.Author : 'Unknown Author'} - {book.Size ? book.Size : ''}
+          </p>
+        </div>
+        <button className="book-action">
+          Start Reading
+        </button>
+      </div>
+    </div>
+      ))
+    ) : (
+      <div className="flex items-center justify-center h-full">
+        <NoBooksFoundFallback />
+      </div>
+    )}
+  </div>
+)}
 
  {selectedBookId && (
   <BookDetails
