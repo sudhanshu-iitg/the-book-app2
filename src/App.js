@@ -10,6 +10,7 @@ import SignInButton from './components/SignInButton';
 import SignOutButton from './components/SignOutButton';
 import BookDetails from './components/BookDetails';
 import BookCover from './components/BookCover';
+import PersistentSearch from './components/search.js';
 import { NotLoggedInFallback, NoBooksFoundFallback,ErrorFallback  } from './components/FallbackComponents';
 import PopularTopics from './components/PopularTopics';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
@@ -563,14 +564,20 @@ function App() {
             {user ? <SignOutButton /> : <SignInButton />}
           </div>
         </div>
-        <div className="search-wrapper">
-          {showBackButton && (
-            <button className="back-button" onClick={handleBackClick}>
-              <ArrowLeft size={20} />
-            </button>
-          )}
-          
-        </div>
+        {showBackButton && (
+        <div className="search-wrapper ">
+  
+    <button className="back-button" onClick={handleBackClick}>
+      <ArrowLeft size={20} />
+    </button>
+ 
+  {!showCategories && <PersistentSearch 
+    searchTerm={searchTerm}
+    setSearchTerm={setSearchTerm}
+    handleSearch={handleSearch}
+    isLoading={isLoading}
+  />}
+</div> )}
       </header>
       <main>
       {isLoading && (
