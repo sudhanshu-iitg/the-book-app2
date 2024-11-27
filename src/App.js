@@ -563,7 +563,8 @@ function App() {
           <div className="auth-buttons">
             {user ? <SignOutButton /> : <SignInButton />}
           </div>
-        </div>
+        </div></header>
+        
         {showBackButton && (
         <div className="search-wrapper ">
   
@@ -578,7 +579,7 @@ function App() {
     isLoading={isLoading}
   />}
 </div> )}
-      </header>
+      
       <main>
       {isLoading && (
         <div className="processing-info mt-4 p-4 bg-blue-50 rounded-lg shadow-md">

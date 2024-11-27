@@ -2,29 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { Menu, BookOpen, FileText, MessageSquare, Code, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createClient } from "@supabase/supabase-js";
-import './ChapterDetails.css';
 import MetadataDisplay from './Metadata.js';
-
+import './ChapterDetails.css';
 const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
-
 const ChapterDetails = ({ 
   bookId, 
   chapterId, 
   chapterTitle, 
-  onBackClick, 
   chapterNumber, 
   totalChapters, 
   bookTitle,
   metadata: initialMetadata 
 }) => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('metadata');
+  const [chapterContent, setChapterContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState(initialMetadata);
-  const [activeTab, setActiveTab] = useState('metadata');
-  const [chapterContent, setChapterContent] = useState('');
   const [currentChapter, setCurrentChapter] = useState({
     id: chapterId,
     title: chapterTitle,
@@ -56,7 +53,7 @@ const ChapterDetails = ({
           metadata: data.metadata
         });
         setMetadata(data.metadata);
-        setChapterContent('');
+        setChapterContent(''); // Reset chapter content when changing chapters
         navigate(`/books/${bookId}/chapters/${data.id}`, { replace: true });
       } else {
         setError(`No ${direction} chapter available.`);
@@ -108,14 +105,6 @@ const ChapterDetails = ({
     }));
   };
 
-  if (loading) {
-    return <div className="loading-screen">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="error-screen">{error}</div>;
-  }
-
   return (
     <div className="chapter-details">
       <header className="chapter-header">
@@ -146,50 +135,42 @@ const ChapterDetails = ({
 
       <h3>Chapter {currentChapter.number || '-'} - {currentChapter.title || 'Untitled Chapter'}</h3>
 
-      <div className="bg-gray-100 rounded-lg ">
-      <div
-  className="gap-2 p-2 bg-gray-100 rounded-lg"
-  style={{
-    display: "inline-flex", // Inline-flex ensures wrapping content width
-    
-    background: "#f5f5f5",
-    borderRadius: "8px"
-  }}
->
-      <button
-        onClick={() => handleTabChange('metadata')}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-          activeTab === 'metadata' 
-            ? 'bg-white shadow-sm' 
-            : 'hover:bg-white/50 bg-grey'
-        }`}
-        style={{background: "#f5f5f5"}}
-      >
-        <Code 
-          className={`w-5 h-5 ${
-            activeTab === 'metadata' 
-              ? 'text-black' 
-              : 'text-black'
-          }`}
-        />
-      </button>
-      <button
-        onClick={() => handleTabChange('content')}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-          activeTab === 'content' 
-            ? 'bg-white shadow-sm' 
-            : 'bg-yellow'
-        }`}
-        style={{background: "#f5f5f5"}}
-      >
-        <BookOpen 
-          className={`w-5 h-5 ${
-            activeTab === 'content' 
-              ? 'text-black' 
-              : 'text-black '
-          }`}
-        />
-      </button>
+      <div className="bg-gray-100 rounded-lg p-4">
+      {/* Top Bar */}
+        <div className="flex space-x-4 mb-4">
+          <button
+            onClick={() => handleTabChange('metadata')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md ${
+              activeTab === 'metadata'
+                ? 'bg-gray-200 text-black'
+                : 'hover:bg-gray-200 text-gray-600'
+            }`}
+          >
+            <Code size={20} />
+            <span>Metadata</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('content')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md ${
+              activeTab === 'content'
+                ? 'bg-gray-200 text-black'
+                : 'hover:bg-gray-200 text-gray-600'
+            }`}
+          >
+            <BookOpen size={20} />
+            <span>Chapter Content</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('comments')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md ${
+              activeTab === 'comments'
+                ? 'bg-gray-200 text-black'
+                : 'hover:bg-gray-200 text-gray-600'
+            }`}
+          >
+            <MessageSquare size={20} />
+            <span>Comments</span>
+          </button>
         </div>
 
         <div className="mt-4">
@@ -208,11 +189,15 @@ const ChapterDetails = ({
                 />
               )}
               {activeTab === 'content' && (
-                <div style={{ whiteSpace: 'pre-wrap', width: '100%' }}>
-                  {chapterContent}
+  <div style={{ whiteSpace: 'pre-wrap', width: '100%' }}>
+    {chapterContent}
+  </div>
+)}
+              {activeTab === 'comments' && (
+                <div className="text-gray-600">
+                  Comments feature coming soon...
                 </div>
               )}
-              
             </>
           )}
         </div>

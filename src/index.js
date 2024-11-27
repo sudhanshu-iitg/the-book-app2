@@ -5,7 +5,6 @@ import './index.css';
 import App from './App';
 import Categories from './components/Categories';
 import BookDetails from './components/BookDetails';
-import ChapterDetails from './components/chapter details new';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
