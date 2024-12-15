@@ -329,15 +329,7 @@ function App() {
   };
   // Add this function outside of the useEffect, but still within your component
   const updateUserProfile = async (user) => {
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: user.id,
-        email: user.email,
-        updated_at: new Date(),
-      });
   
-    if (error) console.error('Error updating user profile:', error);
   };
   const fetchRecentlyReadBooks = async (userId) => {
     try {
@@ -392,7 +384,7 @@ function App() {
         setShowBackButton(true);
         setBookAuthor(book.Author);
         setBookTitle(book.Title);
-        setBookUrl(book.Mirror_1);
+        setBookUrl(book.download_links);
         setBookId(book.ID);
         // We'll pass a flag to indicate that this book needs to be requested
         setBookNeedsRequest(true);
