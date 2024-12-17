@@ -188,22 +188,20 @@ setChapterProgress(progress);
   const handleRequestBook = async () => {
     setRequestStatus('requested');
     setIsProcessing(true);
-
+  
     try {
-      console.log('10')
       const apiUrl = `https://thebookapp-production-eb6d.up.railway.app/store?key=true&url=${encodeURIComponent(bookUrl)}&title=${encodeURIComponent(bookTitle)}&author=${encodeURIComponent(bookAuthor || 'Unknown Author')}&id=${encodeURIComponent(bookId)}`;
       const response = await fetch(apiUrl);
-      console.log('11')
-      // console.log(response);
+  
       if (!response.ok) {
         console.log(`Network response was not ok: ${response.status} ${response.statusText}`);
       }
-
-      
-      
+  
+      // Explicitly start polling for updates
+      pollForNewChapters();
     } catch (error) {
       console.error('Error requesting book:', error.message);
-      pollForNewChapters();
+      pollForNewChapters(); // Ensure polling starts on error
     }
   };
 
