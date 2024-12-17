@@ -1,27 +1,22 @@
 .App {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem; /* Add some padding on the sides for smaller screens */
 }
-/* Book Tiles */
+
 .book-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Smaller tiles on mobile */
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
 }
 
 .book-tile {
   border: 1px solid #ddd;
-  padding: 1rem;
+  padding: 15px;
   border-radius: 5px;
-}
-.book-tile h3 {
-  margin-top: 0;
-  font-size: 1rem; /* Adjust font size */
 }
 .top-nav {
   background-color: white;
-  padding: 1rem; /* Use rem units for padding */
+  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -31,25 +26,16 @@
 .top-nav h1 {
   margin: 0;
   color: #333;
-  font-size: 1.5rem; /* Adjust font size for mobile */
+  font-size: 24px;
 }
 
-/* Buttons */
-.top-nav .auth-buttons button,
-.auth-buttons button,
-button,
-.book-action,
-.category-button,
-.chapter-selector button,
-.chapter-navigation button {
+.top-nav .auth-buttons button {
   background-color: black;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.875rem; /* Smaller font size for buttons on mobile */
-  padding: 0.5rem 1rem; /* Adjust padding */
-  margin-bottom: 0.5rem; /* Add margin to the bottom of buttons on mobile */
+  font-size: 14px;
 }
 
 .top-nav .auth-buttons button:hover {
@@ -57,7 +43,7 @@ button,
 }
 .auth-buttons {
   display: flex;
-  gap: 0.5rem; /* Reduce gap on mobile */
+  gap: 10px;
 }
 
 .auth-buttons button {
@@ -69,16 +55,11 @@ button,
 }
 
 .auth-buttons button:hover {
-.top-nav .auth-buttons button:hover,
-.auth-buttons button:hover,
-button:hover,
-.book-action:hover,
-.category-button:hover,
-.chapter-selector button:hover,
-.chapter-navigation button:hover {
   background-color: #0056b3;
 }
-
+.book-tile h3 {
+  margin-top: 0;
+}
 .popup {
   position: fixed;
   z-index: 1;
@@ -117,30 +98,29 @@ button:hover,
 }
 
 .categories-section {
-  padding: 1rem; /* Consistent padding */
+  padding: 20px;
 }
 
 .categories-title {
-  font-size: 1.5rem;
+  font-size: 24px;
   font-weight: bold;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
   color: #333;
 }
 
 .categories-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 16px;
 }
 
 .category-button {
   display: flex;
   align-items: center;
- 
+  padding: 12px 20px;
   background-color: #fff;
   border: none;
-  padding: 0.75rem 1.25rem; /* Adjust padding */
-  border-radius: 2rem; /* Adjust border radius */
+  border-radius: 30px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -152,21 +132,22 @@ button:hover,
 }
 
 .category-icon {
+  margin-right: 8px;
   color: #0066FF;
-  margin-right: 0.5rem;
 }
 
 .category-button span {
+  font-size: 16px;
   color: #333;
-  font-size: 0.875rem; /* Adjust font size */
 }
 
 .book-list {
   display: grid;
-  grid-template-columns: 1fr; /* Single column layout on mobile */
-  gap: 1rem;
-  padding: 1rem;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 20px;
 }
+
 .book-item {
   display: flex;
   background-color: white;
@@ -174,16 +155,13 @@ button:hover,
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   overflow: hidden;
   transition: box-shadow 0.3s ease;
-  flex-direction: column; /* Stack elements vertically on mobile */
-  align-items: center; /* Center align items */
 }
 
 .book-item:hover {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-.book-cover-wrapper {
-  width: 100%; /* Full width on mobile */
-  margin-bottom: 1rem; /* Add margin below the cover */
 }
+
+
 
 .book-details {
   flex: 1;
@@ -207,17 +185,12 @@ button:hover,
   font-size: 14px;
   color: #666;
   margin: 0 0 8px 0;
-  padding: 1rem 0; /* Adjust padding */
-  text-align: center; /* Center align text */
 }
 
-.book-title-list,
-.book-author-list,
 .book-size-list {
   font-size: 12px;
   color: #888;
   margin: 0;
-  margin-bottom: 0.5rem; /* Reduce margin */
 }
 
 .book-action {
@@ -242,17 +215,15 @@ button:hover,
 }
 .summary {
   border: 1px solid #ddd;
-  padding: 1rem; /* Adjust padding */
+  padding: 20px;
 }
 
 .chapter-selector {
   display: flex;
   flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 20px;
-  gap: 0.5rem; /* Reduce gap */
-  margin-bottom: 1rem;
 }
-
 
 .chapter-selector button {
   padding: 5px 10px;
@@ -265,8 +236,7 @@ button:hover,
 }
 
 .chapter-content {
-  line-height: 1.5; /* Adjust line height */
-  margin-bottom: 1rem;
+  line-height: 1.6;
 }
 
 .chapter-content {
@@ -287,19 +257,21 @@ button:hover {
 }
 .summary-card {
   border: 1px solid #ccc;
+  padding: 20px;
+  margin: 20px 0;
   border-radius: 10px;
   background-color: #f9f9f9;
   position: relative;
   cursor: pointer;
-  padding: 1rem;
-  margin: 1rem 0;
 }
+
 .summary-card h2 {
   margin-bottom: 10px;
 }
 
 .back-button-container {
-  margin-top: 0.5rem;
+  /* text-align: center; */
+  margin-top: 10px; /* Adjust as needed */
 }
 .fallback {
   position: absolute;
@@ -317,9 +289,8 @@ button:hover {
   color: black;
   font-size: 18px;
   cursor: pointer;
-  font-size: 1rem; /* Adjust font size */
-  padding: 0.5rem 1rem;
-  margin-top: 0.5rem;
+  padding: 10px 20px;
+  margin-top: 10px; /* Adjust for spacing below the search bar */
 }
 
 .back-button:hover {
@@ -419,26 +390,25 @@ button:hover {
   border-radius: 30px;
   overflow: hidden;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 0.5rem; /* Adjust padding */
+  padding: 0.5rem;
 }
 
 .search-container input {
   flex-grow: 1;
-  padding: 0.75rem;
   border: none;
-  font-size: 0.875rem;
   outline: none;
+  padding: 0.75rem;
+  font-size: 0.875rem;
 }
 
 .search-container button {
   background-color: white; /* Change this to your preferred blue color */
   border: none;
-  padding: 12px 20px;
+  padding: 0.75rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem;
 }
 
 .search-container button:hover {
@@ -476,20 +446,19 @@ button:hover {
 .hero-section {
   text-align: center;
   background-color: #fff;
-  font-size: 2.5rem; 
 }
 
 .hero-title {
-  font-size: 2.5rem; 
+  font-size: 48px;
   font-weight: bold;
   margin-bottom: 16px;
   color: #000;
 }
 
 .hero-subtitle {
-  font-size: 1.125rem; 
+  font-size: 20px;
   color: #666;
-  margin-bottom: 1.5rem;
+  margin-bottom: 32px;
 }
 
 .search-container-hero {
@@ -512,7 +481,7 @@ button:hover {
 .hero-search-input {
   width: 100%;
   border: none;
-  font-size: 0.875rem; 
+  font-size: 16px;
   outline: none;
   background: transparent;
 }
@@ -635,45 +604,12 @@ button:hover {
     font-size: 18px;
     padding: 10px,0px,10px,0px;
   }
-  .book-list {
-    grid-template-columns: repeat(2, 1fr); /* Two columns on tablets */
-  }
-    .search-wrapper {
-    padding: 0.5rem; /* Adjust padding */
-  }
 }
 
 @media (max-width: 480px) {
   .topics-grid {
     grid-template-columns: 1fr;
   }
-  .search-wrapper {
-    flex-direction: column; /* Stack elements vertically */
-    align-items: flex-start; /* Align to the start */
-  }
-  .book-list {
-    grid-template-columns: 1fr; /* One column on smaller mobile */
-  }
-
-  .book-item {
-    padding: 0.5rem; /* Further reduce padding */
-  }
-    .topics-grid {
-        grid-template-columns: repeat(1, 1fr);
-        padding: 0.5rem;
-    }
-  .hero-title {
-    font-size: 2rem; /* Even smaller title */
-  }
-
-  .hero-subtitle {
-    font-size: 1rem; /* Even smaller subtitle */
-  }
-  .back-button-container {
-    margin-top: 0.5rem;
-    text-align: center;
-}
-
 }
 .topics-grid {
   display: grid;
