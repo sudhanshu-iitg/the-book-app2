@@ -47,7 +47,6 @@ const HeroSection = ({ searchTerm, setSearchTerm, handleSearch, isLoading }) => 
   );
 };
 
-
 const SummarySection = () => {
   return (
     <div className="summary-section">
@@ -446,7 +445,8 @@ function App() {
         const { data: booksData, error } = await supabase
           .from('books')
           .select('*')
-          .eq('category_id', categoryId);
+          .eq('category_id', categoryId)
+          .order('created_at', { ascending: false });
     
         if (error) throw error;
     
@@ -574,6 +574,14 @@ function App() {
       
       <main>
       {isLoading && (
+        <div>
+        <div className="search-wrapper ">
+        <PersistentSearch 
+    searchTerm={searchTerm}
+    setSearchTerm={setSearchTerm}
+    handleSearch={handleSearch}
+    isLoading={isLoading}
+  /></div>
         <div className="processing-info mt-4 p-4 bg-blue-50 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -592,7 +600,7 @@ function App() {
               <div className="dot"></div>
             </div>
           </div>
-        </div>
+        </div></div>
       )}
   {showCategories && (
       <>
