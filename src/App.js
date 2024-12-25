@@ -491,6 +491,7 @@ function App() {
     setIsLoading(true);
     setShowCategories(false);
     setShowBooks(false);
+    setShowBackButton(true);
     let data = null;  // Initialize 'data' outside the try block
   
     try {
@@ -575,13 +576,7 @@ function App() {
       <main>
       {isLoading && (
         <div>
-        <div className="search-wrapper ">
-        <PersistentSearch 
-    searchTerm={searchTerm}
-    setSearchTerm={setSearchTerm}
-    handleSearch={handleSearch}
-    isLoading={isLoading}
-  /></div>
+          
         <div className="processing-info mt-4 p-4 bg-blue-50 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div className="flex items-center">

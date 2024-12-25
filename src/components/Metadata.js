@@ -141,9 +141,7 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
         {pairs.map((qa, idx) => (
           <div key={idx} className="bg-gray-50 rounded-lg p-6">
             <div className="flex gap-4 mb-4 items-start">
-              <span className="bg-sky-100 text-sky-600 px-3 py-1 rounded-full text-sm font-medium h-fit">
-                Q{qa.index}
-              </span>
+              
               <h5 className="font-medium text-gray-800">{qa.question}</h5>
             </div>
             <div className="ml-12">
