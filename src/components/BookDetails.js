@@ -13,6 +13,7 @@ const BookDetails = ({ bookId, onBackClick, showChapter, setShowChapter, userId,
   const navigate = useNavigate();
   const [book, setBook] = useState(null);
   const [chapters, setChapters] = useState([]);
+  const [bookDescription, setBookDescription] = useState('');
   const [totalChapters, setTotalChapters] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [chapterProgress, setChapterProgress] = useState({});
@@ -26,6 +27,7 @@ const BookDetails = ({ bookId, onBackClick, showChapter, setShowChapter, userId,
   useEffect(() => {
     fetchBookDetails();
     fetchChapters();
+    fetchBookDescription();
   
     return () => {
       if (pollIntervalRef.current) {
@@ -39,6 +41,26 @@ const BookDetails = ({ bookId, onBackClick, showChapter, setShowChapter, userId,
       fetchChapterProgress();
     }
   }, [chapters, userId]);
+  const fetchBookDescription = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('chapter_contents')
+        .select('content')
+        .eq('book_id', bookId)
+        .eq('chapter_number', 0)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        // Take first three sentences from the content
+        const sentences = data.content;
+        setBookDescription(sentences);
+      }
+    } catch (error) {
+      console.error('Error fetching book description:', error.message);
+    }
+  };
   const fetchChapterProgress = async () => {
     try {
       const { data, error } = await supabase
@@ -123,6 +145,7 @@ setChapterProgress(progress);
         .from('chapter_contents')
         .select('*')
         .eq('book_id', bookId)
+        .neq('chapter_number', 0)  
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -268,6 +291,9 @@ setChapterProgress(progress);
         <div className="book-info">
           <h1 className="book-title">{book?.Title || bookTitle}</h1>
           <p className="book-author">by {book?.Author || bookAuthor}</p>
+          {bookDescription && (
+            <p className="book-description">{bookDescription}</p>
+          )}
           <div className="book-actions">
             {chapters.length > 0 && (
               <button className="action-button primary-button" onClick={() => handleChapterClick(chapters[0])}>
