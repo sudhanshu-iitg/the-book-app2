@@ -202,6 +202,10 @@ setChapterProgress(progress);
         clearInterval(pollIntervalRef.current);
       } else {
         fetchChapters();
+        if(!bookDescription)
+        {
+          fetchBookDescription();}
+        
       }
     }, 5000); // Poll every 5 seconds
 
