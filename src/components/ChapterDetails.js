@@ -4,11 +4,32 @@ import { useNavigate } from 'react-router-dom';
 import { createClient } from "@supabase/supabase-js";
 import './ChapterDetails.css';
 import MetadataDisplay from './Metadata.js';
+import ContentSection from './Cards.js';
 
 const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
-
+const ProcessingAnimation = () => (
+  <div className="processing-info mt-4 p-4 bg-blue-50 rounded-lg shadow-md">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center">
+        <div>
+          <p className="text-blue-700 font-semibold text-lg">
+            Generating chapter cards...
+          </p>
+          <p className="text-blue-600 text-sm">
+            This may take a few moments.
+          </p>
+        </div>
+      </div>
+      <div className="processing-animation">
+        <div className="dot"></div>
+        <div className="dot"></div>
+        <div className="dot"></div>
+      </div>
+    </div>
+  </div>
+);
 const ChapterDetails = ({ 
   bookId, 
   chapterId, 
@@ -31,6 +52,8 @@ const ChapterDetails = ({
     number: chapterNumber,
     metadata: initialMetadata
   });
+  const [cardContent, setCardContent] = useState([]);
+const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
   const fetchChapter = async (direction) => {
     setLoading(true);
@@ -90,14 +113,72 @@ const ChapterDetails = ({
     }
   };
 
+  const fetchCardContent = async () => {
+    setLoading(true);
+    setError(null);
+  
+    try {
+      // Step 1: Fetch cards for the current chapter
+      const { data: cardsData, error: cardsError } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('chapter_id', currentChapter.id)
+        .order('card_num');
+  
+      if (cardsError) throw cardsError;
+  
+      if (cardsData && cardsData.length > 0) {
+        // Step 2a: Cards found, set them in state
+        setCardContent(cardsData);
+      } else {
+        // Step 2b: No cards found, trigger card generation
+        // Show a message to the user (e.g., using a toast or alert)
+  
+        // Step 3: Call the API to generate cards
+        console.log("Generating cards...");
+        console.log(`https://thebookapp-production-eb6d.up.railway.app/cards?key=${encodeURIComponent(currentChapter.id)}`);
+        const generateResponse = await fetch(`https://thebookapp-production-eb6d.up.railway.app/cards?key=${encodeURIComponent(currentChapter.id)}`);
+  
+        if (!generateResponse.ok) {
+          throw new Error('Failed to generate cards.');
+        }
+  
+        // Step 4: Fetch the cards again after generation
+        const { data: generatedCardsData, error: generatedCardsError } = await supabase
+          .from('cards')
+          .select('*')
+          .eq('chapter_id', currentChapter.id)
+          .order('card_num');
+  
+        if (generatedCardsError) throw generatedCardsError;
+  
+        if (generatedCardsData) {
+          setCardContent(generatedCardsData);
+        } else {
+          setError('Cards were generated, but unable to fetch them.');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching or generating card content:', error);
+      setError('Failed to load or generate card content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'content') {
       fetchChapterContent();
+    } else if (activeTab === 'cards') {
+      fetchCardContent();
     }
   }, [activeTab, currentChapter.id]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    if (tab === 'cards') {
+      fetchCardContent();
+    }
   };
 
   const handleMetadataUpdate = (newMetadata) => {
@@ -107,10 +188,6 @@ const ChapterDetails = ({
       metadata: newMetadata
     }));
   };
-
-  if (loading) {
-    return <div className="loading-screen">Loading...</div>;
-  }
 
   if (error) {
     return <div className="error-screen">{error}</div>;
@@ -190,11 +267,20 @@ const ChapterDetails = ({
           }`}
         />
       </button>
+      <button
+  onClick={() => handleTabChange('cards')}
+  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+    activeTab === 'cards' ? 'bg-white ' 
+            : 'bg-transparent'
+  }`}
+>
+  <MessageSquare className={`w-5 h-5 ${activeTab === 'cards' ? 'text-black' : 'text-black'}`} />
+</button>
         </div>
 
         <div className="mt-4">
           {loading ? (
-            <div className="text-center py-8">Loading...</div>
+            <ProcessingAnimation />
           ) : error ? (
             <div className="text-red-600 py-4">{error}</div>
           ) : (
@@ -212,6 +298,18 @@ const ChapterDetails = ({
                   {chapterContent}
                 </div>
               )}
+              {activeTab === 'cards' && (
+  <ContentSection
+    type="cards"
+    content={cardContent}
+    onNavigate={handleTabChange}
+    isLastChapter={currentChapter.number >= totalChapters}
+    onNextChapter={() => fetchChapter('next')}
+    onCardChange={setCurrentCardIndex}
+    initialCard={currentCardIndex}
+    setCurrentCard={setCurrentCardIndex}
+  />
+)}
               
             </>
           )}
