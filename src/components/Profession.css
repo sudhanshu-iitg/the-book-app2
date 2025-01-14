@@ -1,0 +1,87 @@
+.profession-books {
+    margin-bottom: 3rem;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profession-title {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.book-list-horizontal {
+    display: flex;
+    overflow-x: auto;
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f0f0f0;
+}
+
+.book-list-horizontal::-webkit-scrollbar {
+    height: 8px;
+}
+
+.book-list-horizontal::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 4px;
+}
+
+.book-list-horizontal::-webkit-scrollbar-track {
+    background-color: #f0f0f0;
+}
+
+.book-item-horizontal {
+    flex: 0 0 auto;
+    width: 160px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.book-item-horizontal:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.book-item-horizontal .book-cover-wrapper {
+    width: 100%;
+    height: 220px;
+    background-color: #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.book-item-horizontal .book-cover-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+}
+
+.book-item-horizontal:hover .book-cover-wrapper img {
+    filter: grayscale(0%);
+}
+
+.book-item-horizontal .book-details {
+    margin-top: 0.75rem;
+    text-align: center;
+}
+
+.book-item-horizontal .book-title {
+    font-size: 1.1rem;
+    margin: 0;
+    color: #333;
+    font-weight: 500;
+}
+
+.book-item-horizontal .book-author {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0.25rem 0 0;
+}

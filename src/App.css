@@ -448,6 +448,7 @@ button:hover {
   background-color: #fff;
   padding-left: 10px;
   padding-right: 10px;
+  padding-bottom: 5%;
 }
 
 .hero-title {
@@ -503,11 +504,21 @@ button:hover {
 }
 
 .topics-grid {
+  padding: 2.5%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 5 auto;
+  text-overflow : hidden;
+  overflow: hidden;
+  white-space: nowrap; 
+}
+.truncate-custom {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 100%; /* Adjust as needed */
 }
 
 .topic-card {
@@ -517,6 +528,10 @@ button:hover {
   border: 1px solid #eee;
   cursor: pointer;
   transition: transform 0.2s;
+  overflow: hidden; /* Keeps content within the container */
+  max-width: 100%; /* Ensures the card doesn't exceed its container */
+  word-break: break-word; /* Ensures long words break and wrap */
+  width: 100%; /* Ensures the card takes up the full width of its container */
 }
 
 .topic-card:hover {
@@ -597,6 +612,8 @@ button:hover {
 @media (max-width: 768px) {
   .topics-grid {
     grid-template-columns: repeat(2, 1fr);
+    margin: 5;
+    padding: 2%;
   }
   
   .hero-title {
@@ -612,23 +629,12 @@ button:hover {
 @media (max-width: 480px) {
   .topics-grid {
     grid-template-columns: 1fr;
+    margin: 5;
+    padding: 2%;
   }
 }
-.topics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-}
 
-.topic-card {
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
+
 
 .topic-card h3 {
   margin-top: 0.5rem;

@@ -13,6 +13,8 @@ import BookCover from './components/BookCover';
 import PersistentSearch from './components/search.js';
 import { NotLoggedInFallback, NoBooksFoundFallback,ErrorFallback  } from './components/FallbackComponents';
 import PopularTopics from './components/PopularTopics';
+import ProfessionBooks from './components/Profession.js';
+import { data } from 'autoprefixer';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 const supabaseUrl = process.env.REACT_APP_supabaseUrl
 const supabaseKey = process.env.REACT_APP_supabaseKey
@@ -125,6 +127,9 @@ function App() {
   const [bookUrl, setBookUrl] = useState([]);
   const [bookId, setBookId] = useState([]);
   const [fallbackState, setFallbackState] = useState(null);
+  const [selectedHeaderName, setSelectedHeaderName] = useState('');
+  const [professions, setProfessions] = useState([]);
+  const [navigationContext, setNavigationContext] = useState('home'); // 'home' or 'category'
 
   useEffect(() => {
 
@@ -204,6 +209,7 @@ function App() {
 
     fetchCategories();
     fetchBooksByCategory();
+    fetchProfessions(); 
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
@@ -226,6 +232,7 @@ function App() {
         setShowCategories(state.showCategories);
         setShowBooks(state.showBooks);
         setSelectedCategoryId(state.selectedCategoryId);
+
         setSelectedBookId(state.selectedBookId);
         setSelectedChapter(state.selectedChapter);
         setShowBackButton(state.showBackButton);
@@ -365,19 +372,20 @@ function App() {
       console.error('Error fetching recently read books:', error.message);
     }
   }; 
-  const handleBookClick = async (book) => {
+  const handleBookClick = async (book, fromCategory = false) => {
     try {
       let bookId = book.ID ?? book.Id;
-      console.log(bookId)
+      console.log(bookId);
       const { data: bookData, error: bookError } = await supabase
         .from('books')
         .select('*')
         .eq('Id', bookId)
         .single();
-      console.log(bookData)
+  
+      console.log(bookData);
+  
       if (bookError) {
         console.error('Error fetching book:', bookError.message);
-        // If the book is not found in the database, we still show the book details page
         setSelectedBookId(book.ID);
         setShowBooks(false);
         setShowBackButton(true);
@@ -385,16 +393,19 @@ function App() {
         setBookTitle(book.Title);
         setBookUrl(book.download_links);
         setBookId(book.ID);
-        // We'll pass a flag to indicate that this book needs to be requested
         setBookNeedsRequest(true);
       } else {
+        setSelectedHeaderName(book.Title);
         setSelectedBookId(bookId);
-      setShowBooks(false);
-      setShowBackButton(true);
-      setBookNeedsRequest(false);
-      navigate(`/books/${book.Id}`);
-     
-    }  } catch (error) {
+        setShowBooks(false);
+        setShowBackButton(true);
+        setBookNeedsRequest(false);
+        navigate(`/books/${book.Id}`);
+      }
+  
+      // Set navigation context based on whether the book was clicked from a category
+      setNavigationContext(fromCategory ? 'category' : 'home');
+    } catch (error) {
       console.error('Error handling book click:', error.message);
     }
   };
@@ -441,45 +452,98 @@ function App() {
   const fetchBooksByCategory = async (categoryId) => {
     console.log('fetching books by category:', categoryId);
     if (categoryId) {
-      try {  
+      try {
         const { data: booksData, error } = await supabase
           .from('books')
           .select('*')
           .eq('category_id', categoryId)
           .order('created_at', { ascending: false });
-    
+  
+        const { data: categoryData, error: categoryError } = await supabase
+          .from('categories')
+          .select('name')
+          .eq('id', categoryId)
+          .single();
+  
+        if (categoryError) throw categoryError;
+  
         if (error) throw error;
-    
+  
         setBooks(booksData);
         setShowCategories(false);
         setShowBooks(true);
         setSelectedCategoryId(categoryId);
+        setSelectedHeaderName(categoryData.name);
         setShowBackButton(true);
         navigate(`/${categoryId}`);
+  
+        // Set navigation context to 'category' when fetching books by category
+        setNavigationContext('category');
       } catch (error) {
         console.error('Error fetching books:', error);
-  }}};
+      }
+    }
+  };
 
   const handleBackClick = () => {
     if (selectedChapter) {
       setSelectedChapter(false);
-      setSelectedChapterId(null)
-      // navigate(`books/${selectedBookId}`);
+      setSelectedChapterId(null);
       navigate(`/books/${selectedBookId}`);
-    } 
-    else if (selectedBookId) {
+      setSelectedHeaderName('');
+    } else if (selectedBookId) {
       setSelectedBookId(null);
       setShowBooks(true);
       setShowCategories(false);
-      navigate(`/${selectedCategoryId}`);
-    } 
-    else if (showBooks) {
+      setShowBackButton(true);
+  
+      // Navigate back based on the navigation context
+      if (navigationContext === 'category') {
+        navigate(`/${selectedCategoryId}`);
+      } else {
+        navigate('/');
+        setShowCategories(true);
+        setShowBooks(false);
+        setShowBackButton(false);
+      }
+  
+      setSelectedHeaderName('');
+    } else if (showBooks) {
       setShowBooks(false);
       setShowCategories(true);
       setShowBackButton(false);
       navigate('/');
+      setSelectedHeaderName('');
     }
-    
+  };
+
+  const fetchProfessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('professions')
+        .select('*');
+  
+      if (error) throw error;
+  
+      // Fetch books for each profession
+      const professionsWithBooks = await Promise.all(data.map(async (profession) => {
+        const { data: booksData, error: booksError } = await supabase
+          .from('books')
+          .select('*')
+          .eq('profession_id', profession.id);
+  
+        if (booksError) throw booksError;
+  
+        return {
+          ...profession,
+          books: booksData
+        };
+      }));
+  
+      setProfessions(professionsWithBooks);
+    } catch (error) {
+      console.error('Error fetching professions:', error.message);
+    }
   };
 
   const handleSearch = async () => {
@@ -547,11 +611,12 @@ function App() {
         <div className="top-nav">
         <h1 onClick={() => {
   setShowCategories(true);
+  setSelectedHeaderName(''); 
   setShowBooks(false);
   setShowBackButton(false);
   navigate('/');
 }}>
-            The Book App
+            {selectedHeaderName ? selectedHeaderName : 'The Book App'}
           </h1>
           <div className="auth-buttons">
             {user ? <SignOutButton /> : <SignInButton />}
@@ -609,6 +674,13 @@ function App() {
       categories={categories} 
       onTopicClick={(categoryId) => fetchBooksByCategory(categoryId)} 
     />
+    {professions.map((profession) => (
+      <ProfessionBooks 
+      key={profession.id} 
+      profession={profession} 
+      onBookClick={(book) => handleBookClick(book, false)} // Home screen
+    />
+    ))}
         <SummarySection />
       </>
     )}
@@ -619,7 +691,7 @@ function App() {
         <div 
       key={book.Id}
       className="book-item"
-      onClick={() => handleBookClick(book)}
+      onClick={() => handleBookClick(book, true)}
     >
       <div className="book-cover-wrapper">
         <BookCover book={book} />
