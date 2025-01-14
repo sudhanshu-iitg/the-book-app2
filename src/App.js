@@ -616,7 +616,11 @@ function App() {
   setShowBackButton(false);
   navigate('/');
 }}>
-            {selectedHeaderName ? selectedHeaderName : 'The Book App'}
+            {selectedHeaderName
+        ? selectedHeaderName.length > 20
+          ? `${selectedHeaderName.slice(0, 20)}...`
+          : selectedHeaderName
+        : 'The Book App'}
           </h1>
           <div className="auth-buttons">
             {user ? <SignOutButton /> : <SignInButton />}
