@@ -142,7 +142,9 @@
   border-radius: 12px;
   padding: 20px;
   width: 100%;
-  max-width: 70%;
+  max-width: 75%;
+  max-height: 80vh; /* Limit the height to 80% of the viewport height */
+  overflow-y: auto; /* Enable vertical scrolling */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   animation: slideUp 0.3s ease;
 }
@@ -229,8 +231,8 @@
   font-size: 0.9rem;
   color: #000;
   animation: fadeIn 0.3s ease;
+  overflow-wrap: break-word; /* Ensure long text wraps and doesn't overflow horizontally */
 }
-
 .selected-text-display {
   margin-bottom: 16px;
   padding: 12px;
