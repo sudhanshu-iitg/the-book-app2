@@ -114,33 +114,26 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
 
   useEffect(() => {
     const handleTextSelection = () => {
-      setTimeout(() => {
-        const selection = window.getSelection();
-        const selectedText = selection.toString().trim();
+      const selection = window.getSelection();
+      const selectedText = selection.toString().trim();
   
-        if (selectedText !== '') {
-          setSelectedText(selectedText);
-          console.log("Selected Text (from event):", selectedText);
-        } else {
-          setSelectedText('');
-        }
-      }, 100); // Adjust the delay as needed
-    };
-  
-    const metadataElement = metadataRef.current;
-  
-    if (metadataElement) {
-      metadataElement.addEventListener('mouseup', handleTextSelection);
-      metadataElement.addEventListener('touchstart', handleTextSelection);
-    }
-  
-    return () => {
-      if (metadataElement) {
-        metadataElement.removeEventListener('mouseup', handleTextSelection);
-        metadataElement.removeEventListener('touchstart', handleTextSelection);
+      if (selectedText !== '') {
+        setSelectedText(selectedText);
+        console.log("Selected Text (from event):", selectedText);
+      } else {
+        setSelectedText('');
       }
     };
+  
+    // Add selectionchange event listener
+    document.addEventListener('selectionchange', handleTextSelection);
+  
+    return () => {
+      // Clean up the event listener
+      document.removeEventListener('selectionchange', handleTextSelection);
+    };
   }, []);
+  
 
   useEffect(() => {
     console.log("Selected Text (from state):", selectedText);
