@@ -114,33 +114,29 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
 
   useEffect(() => {
     const handleTextSelection = () => {
-      const selection = window.getSelection();
-      const selectedText = selection.toString().trim();
+      setTimeout(() => {
+        const selection = window.getSelection();
+        const selectedText = selection.toString().trim();
   
-      if (selectedText !== '') {
-        setSelectedText(selectedText);
-        console.log("Selected Text (from event):", selectedText);
-      } else {
-        setSelectedText('');
-      }
+        if (selectedText !== '') {
+          setSelectedText(selectedText);
+          console.log("Selected Text (from event):", selectedText);
+        } else {
+          setSelectedText('');
+        }
+      }, 100); // Adjust the delay as needed
     };
   
     const metadataElement = metadataRef.current;
   
     if (metadataElement) {
-      // Add mouse event listener for desktop
       metadataElement.addEventListener('mouseup', handleTextSelection);
-      
-      // Add touch event listeners for mobile
       metadataElement.addEventListener('touchend', handleTextSelection);
     }
   
     return () => {
       if (metadataElement) {
-        // Remove mouse event listener for desktop
         metadataElement.removeEventListener('mouseup', handleTextSelection);
-        
-        // Remove touch event listeners for mobile
         metadataElement.removeEventListener('touchend', handleTextSelection);
       }
     };
