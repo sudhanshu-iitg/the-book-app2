@@ -131,13 +131,13 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
   
     if (metadataElement) {
       metadataElement.addEventListener('mouseup', handleTextSelection);
-      metadataElement.addEventListener('touchend', handleTextSelection);
+      metadataElement.addEventListener('touchstart', handleTextSelection);
     }
   
     return () => {
       if (metadataElement) {
         metadataElement.removeEventListener('mouseup', handleTextSelection);
-        metadataElement.removeEventListener('touchend', handleTextSelection);
+        metadataElement.removeEventListener('touchstart', handleTextSelection);
       }
     };
   }, []);
