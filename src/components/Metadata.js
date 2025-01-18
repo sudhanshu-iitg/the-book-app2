@@ -128,12 +128,20 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
     const metadataElement = metadataRef.current;
   
     if (metadataElement) {
+      // Add mouse event listener for desktop
       metadataElement.addEventListener('mouseup', handleTextSelection);
+      
+      // Add touch event listeners for mobile
+      metadataElement.addEventListener('touchend', handleTextSelection);
     }
   
     return () => {
       if (metadataElement) {
+        // Remove mouse event listener for desktop
         metadataElement.removeEventListener('mouseup', handleTextSelection);
+        
+        // Remove touch event listeners for mobile
+        metadataElement.removeEventListener('touchend', handleTextSelection);
       }
     };
   }, []);
