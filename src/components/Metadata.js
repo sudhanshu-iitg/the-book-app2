@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { AlertCircle, Book, Loader } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { AlertCircle, Book, Loader, MessageCircle } from 'lucide-react';
 import { createClient } from "@supabase/supabase-js";
 import './Metadata.css';
+
 const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -11,14 +12,14 @@ const Alert = ({ variant = "default", title, children }) => {
 };
 
 const ProcessingAnimation = () => (
-  <div className="processing-info mt-4 p-4 bg-blue-50 rounded-lg shadow-md">
+  <div className="processing-info mt-4 p-4 bg-gray-100 rounded-lg shadow-md">
     <div className="flex items-center justify-between">
       <div className="flex items-center">
         <div>
-          <p className="text-blue-700 font-semibold text-lg">
+          <p className="text-gray-800 font-semibold text-lg">
             Generating chapter summary...
           </p>
-          <p className="text-blue-600 text-sm">
+          <p className="text-gray-600 text-sm">
             This may take a few moments.
           </p>
         </div>
@@ -32,9 +33,114 @@ const ProcessingAnimation = () => (
   </div>
 );
 
+const ChatScreen = ({ selectedText, chapterId, onClose }) => {
+  const [query, setQuery] = useState('');
+  const [response, setResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const selectedTextRef = useRef(selectedText); // Store the selected text in a ref
+
+  // Update the ref when the selectedText prop changes
+  useEffect(() => {
+    selectedTextRef.current = selectedText;
+  }, [selectedText]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const new_text = 'Ruth Benedict"s *The Chrysanthemum and the Sword';
+      const response = await fetch(
+        `https://thebookapp-production-eb6d.up.railway.app/chat?key=${encodeURIComponent(chapterId)}&chapter_id=${chapterId}&query=${encodeURIComponent(query)}&selected_text=${encodeURIComponent(selectedTextRef.current)}`
+      );
+      const data = await response.json();
+      console.log(data.docs);
+      setResponse(data.docs);
+    } catch (error) {
+      console.log(chapterId);
+      console.log(query);
+      console.log(selectedTextRef.current);
+      console.error('Error fetching chat response:', error);
+      setResponse('Error fetching response. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="chat-screen">
+      <div className="chat-content">
+        <div className="chat-header">
+          <h2>Chat</h2>
+          <button onClick={onClose}>&times;</button>
+        </div>
+        <div className="selected-text-display">
+          <p>
+            Selected Text: <em>"{selectedTextRef.current}"</em>
+          </p>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <textarea
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="chat-input"
+            placeholder="Enter your query..."
+            rows="3"
+          />
+          <button
+            type="submit"
+            className="chat-submit-button"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Sending...' : 'Send'}
+          </button>
+        </form>
+        {response && (
+          <div className="chat-response">
+            <p>{response}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [requestStatus, setRequestStatus] = useState('idle');
+  const [selectedText, setSelectedText] = useState('');
+  const [showChat, setShowChat] = useState(false);
+  const metadataRef = useRef(null);
+
+  useEffect(() => {
+    const handleTextSelection = () => {
+      const selection = window.getSelection();
+      const selectedText = selection.toString().trim();
+  
+      if (selectedText !== '') {
+        setSelectedText(selectedText);
+        console.log("Selected Text (from event):", selectedText);
+      } else {
+        setSelectedText('');
+      }
+    };
+  
+    const metadataElement = metadataRef.current;
+  
+    if (metadataElement) {
+      metadataElement.addEventListener('mouseup', handleTextSelection);
+    }
+  
+    return () => {
+      if (metadataElement) {
+        metadataElement.removeEventListener('mouseup', handleTextSelection);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log("Selected Text (from state):", selectedText);
+  }, [selectedText]);
 
   const fetchUpdatedMetadata = async () => {
     try {
@@ -103,8 +209,8 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
       </div>
     );
   }
+
   const renderQUADs = (quads, title) => {
-    // Additional validation for quads object
     if (!quads || typeof quads !== 'object') {
       return (
         <Alert variant="warning" title="Invalid Section Data">
@@ -117,7 +223,7 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
       if (key.startsWith('Question_')) {
         const num = key.split('_')[1];
         const answerKey = `Answer_${num}`;
-        if (quads[answerKey]) { // Only add if answer exists
+        if (quads[answerKey]) {
           pairs.push({
             question: quads[key],
             answer: quads[answerKey],
@@ -139,9 +245,8 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
     return (
       <div className="space-y-6">
         {pairs.map((qa, idx) => (
-          <div key={idx} className="bg-gray-50 rounded-lg p-6">
+          <div key={idx} className="bg-gray-100 rounded-lg p-6">
             <div className="flex gap-4 mb-4 items-start">
-              
               <h5 className="font-medium text-gray-800">{qa.question}</h5>
             </div>
             <div className="ml-12">
@@ -154,12 +259,27 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
   };
 
   const parsedMetadata = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-  
+
   return (
-    <div>
+    <div ref={metadataRef}>
+      {selectedText && (
+        <button
+          onClick={() => setShowChat(true)}
+          className="chat-button"
+        >
+          <MessageCircle size={24} />
+        </button>
+      )}
+      {showChat && (
+        <ChatScreen
+          selectedText={selectedText}
+          chapterId={chapterId}
+          onClose={() => setShowChat(false)}
+        />
+      )}
       <div>
-            {/* Key Themes Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+        {/* Key Themes Card */}
+        <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-start gap-4">
             <div className="flex-1">
               <div className="flex items-center">
@@ -173,8 +293,8 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
           </div>
         </div>
 
-         {/* Case Studies Card */}
-         <div className="bg-white rounded-lg shadow-md p-6">
+        {/* Case Studies Card */}
+        <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-start gap-4">
             <div className="flex-1">
               <h4 className="text-xl font-semibold text-gray-800 mb-3">Case Studies</h4>

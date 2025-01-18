@@ -80,6 +80,7 @@ const [currentCardIndex, setCurrentCardIndex] = useState(0);
         });
         setMetadata(data.metadata);
         setChapterContent('');
+        setCurrentCardIndex(0);
         navigate(`/books/${bookId}/chapters/${data.id}`, { replace: true });
       } else {
         setError(`No ${direction} chapter available.`);
