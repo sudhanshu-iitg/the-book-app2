@@ -171,15 +171,15 @@ const [currentCardIndex, setCurrentCardIndex] = useState(0);
     if (activeTab === 'content') {
       fetchChapterContent();
     } else if (activeTab === 'cards') {
-      fetchCardContent();
+      // fetchCardContent();
     }
   }, [activeTab, currentChapter.id]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // if (tab === 'cards') {
-    //   fetchCardContent();
-    // }
+    if (tab === 'cards') {
+      fetchCardContent();
+    }
   };
 
   const handleMetadataUpdate = (newMetadata) => {
