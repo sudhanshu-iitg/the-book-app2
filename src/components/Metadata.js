@@ -37,9 +37,9 @@ const ChatScreen = ({ selectedText, chapterId, onClose }) => {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const selectedTextRef = useRef(selectedText); // Store the selected text in a ref
+  const selectedTextRef = useRef(selectedText);
+  const chatInputRef = useRef(null); // Ref for the chat input area
 
-  // Update the ref when the selectedText prop changes
   useEffect(() => {
     selectedTextRef.current = selectedText;
   }, [selectedText]);
@@ -49,7 +49,7 @@ const ChatScreen = ({ selectedText, chapterId, onClose }) => {
     setIsLoading(true);
 
     try {
-      const new_text = 'Ruth Benedict"s *The Chrysanthemum and the Sword';
+      console.log("Selected Text (from ref):", selectedTextRef.current);
       const response = await fetch(
         `https://thebookapp-production-eb6d.up.railway.app/chat?key=${encodeURIComponent(chapterId)}&chapter_id=${chapterId}&query=${encodeURIComponent(query)}&selected_text=${encodeURIComponent(selectedTextRef.current)}`
       );
@@ -72,7 +72,7 @@ const ChatScreen = ({ selectedText, chapterId, onClose }) => {
       <div className="chat-content">
         <div className="chat-header">
           <h2>Chat</h2>
-          <button onClick={onClose}>&times;</button>
+          <button onClick={onClose}>×</button>
         </div>
         <div className="selected-text-display">
           <p>
@@ -80,13 +80,15 @@ const ChatScreen = ({ selectedText, chapterId, onClose }) => {
           </p>
         </div>
         <form onSubmit={handleSubmit}>
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="chat-input"
-            placeholder="Enter your query..."
-            rows="3"
-          />
+        <textarea
+  ref={chatInputRef} // Assign the ref here
+  value={query}
+  onChange={(e) => setQuery(e.target.value)}
+  className="chat-input"
+  placeholder="Enter your query..."
+  rows="3"
+/>
+
           <button
             type="submit"
             className="chat-submit-button"
@@ -111,29 +113,33 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
   const [selectedText, setSelectedText] = useState('');
   const [showChat, setShowChat] = useState(false);
   const metadataRef = useRef(null);
+  const chatInputRef = useRef(null); // Ref for the chat input area
 
   useEffect(() => {
     const handleTextSelection = () => {
       const selection = window.getSelection();
       const selectedText = selection.toString().trim();
   
+      // Check if the selection is within the chat input area or any specific component
+      if (
+        chatInputRef.current && 
+        (selection.anchorNode && chatInputRef.current.contains(selection.anchorNode))
+      ) {
+        return; // Do nothing if the selection is inside the chat input
+      }
+  
       if (selectedText !== '') {
         setSelectedText(selectedText);
         console.log("Selected Text (from event):", selectedText);
-      } else {
-        setSelectedText('');
-      }
+      } 
     };
   
-    // Add selectionchange event listener
     document.addEventListener('selectionchange', handleTextSelection);
   
     return () => {
-      // Clean up the event listener
       document.removeEventListener('selectionchange', handleTextSelection);
     };
   }, []);
-  
 
   useEffect(() => {
     console.log("Selected Text (from state):", selectedText);
@@ -268,12 +274,14 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
         </button>
       )}
       {showChat && (
-        <ChatScreen
-          selectedText={selectedText}
-          chapterId={chapterId}
-          onClose={() => setShowChat(false)}
-        />
-      )}
+  <ChatScreen
+    selectedText={selectedText}
+    chapterId={chapterId}
+    onClose={() => setShowChat(false)}
+    chatInputRef={chatInputRef} // Pass the ref
+  />
+)}
+
       <div>
         {/* Key Themes Card */}
         <div className="bg-white rounded-lg shadow-md p-6">
