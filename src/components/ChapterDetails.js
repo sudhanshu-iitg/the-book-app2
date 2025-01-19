@@ -175,12 +175,12 @@ const [currentCardIndex, setCurrentCardIndex] = useState(0);
     }
   }, [activeTab, currentChapter.id]);
 
-  // const handleTabChange = (tab) => {
-  //   setActiveTab(tab);
-  //   if (tab === 'cards') {
-  //     fetchCardContent();
-  //   }
-  // };
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    // if (tab === 'cards') {
+    //   fetchCardContent();
+    // }
+  };
 
   const handleMetadataUpdate = (newMetadata) => {
     setMetadata(newMetadata);
