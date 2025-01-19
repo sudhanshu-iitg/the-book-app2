@@ -88,22 +88,7 @@ const SummarySection = () => {
     </div>
   );
 };
-const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, isLoading }) => {
-  return (
-    <div className="search-container">
-      <input
-        type="text"
-        placeholder="Search for titles..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-      />
-      <button onClick={handleSearch} disabled={isLoading}>
-        <Search size={20} color="#0d6efd" />
-      </button>
-    </div>
-  );
-};
+
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -130,6 +115,11 @@ function App() {
   const [selectedHeaderName, setSelectedHeaderName] = useState('');
   const [professions, setProfessions] = useState([]);
   const [navigationContext, setNavigationContext] = useState('home'); // 'home' or 'category'
+  const [generatedCoverUrl, setGeneratedCoverUrl] = useState(null);
+
+  const handleCoverGenerated = (coverUrl) => {
+    setGeneratedCoverUrl(coverUrl);
+  };
 
   useEffect(() => {
 
@@ -263,80 +253,9 @@ function App() {
       authListener.subscription.unsubscribe();
     };
   }, [location]);// Add location to the dependency array to listen for changes
-    
-  
-  const fetchMyBooks = async () => {
-    try {
-      const { data: progressData, error: progressError } = await supabase
-        .from('user_progress')
-        .select('book_id')
-        .eq('user_id', user.id)
-        .order('last_read_at', { ascending: false });
 
-      if (progressError) throw progressError;
-
-      if (progressData.length === 0) {
-        console.log("No books found in user progress");
-        setFallbackState('no_books');
-        setMyBooks([]);
-        setBooks([]);
-        setShowCategories(false);
-        setShowBooks(true);
-        setShowBackButton(true);
-        return;
-      }
-
-      const bookIds = progressData.map(item => item.book_id);
-      
-      const { data: booksData, error: booksError } = await supabase
-        .from('books')
-        .select('*')
-        .in('Id', bookIds);
-
-      if (booksError) throw booksError;
-
-      if (booksData.length === 0) {
-        console.log("No books found in the database");
-        setFallbackState('no_books_in_db');
-        setMyBooks([]);
-        setBooks([]);
-      } else {
-        console.log("Fetched books:", booksData);
-        setMyBooks(booksData);
-        setBooks(booksData);
-        setFallbackState(null);
-      }
-
-      setShowCategories(false);
-      setShowBooks(true);
-      setShowBackButton(true);
-    } catch (error) {
-      console.error('Error fetching my books:', error.message);
-      setFallbackState('error');
-      setMyBooks([]);
-      setBooks([]);
-      setShowCategories(false);
-      setShowBooks(true);
-      setShowBackButton(true);
-    }
-  };
-
-
-  const handleMyBooksClick = () => {
-    if (!user) {
-      console.log("No user logged in");
-      setFallbackState('not_logged_in');
-      setShowCategories(false);
-      setShowBooks(true);
-      setShowBackButton(true);
-    } else {
-      fetchMyBooks();
-    }
-  };
   // Add this function outside of the useEffect, but still within your component
-  const updateUserProfile = async (user) => {
-  
-  };
+
   const fetchRecentlyReadBooks = async (userId) => {
     try {
       // Fetch the book IDs from user_progress
@@ -428,7 +347,9 @@ function App() {
       console.error('Error fetching categories:', error.message);
     }
   };
+  const updateUserProfile = async (user) => {
   
+  };
   // Helper function to map category names to icons
   const getCategoryIcon = (categoryName) => {
     const iconMap = {
@@ -698,7 +619,7 @@ function App() {
       onClick={() => handleBookClick(book, true)}
     >
       <div className="book-cover-wrapper">
-        <BookCover book={book} />
+      <BookCover book={book} onCoverGenerated={handleCoverGenerated} />
       </div>
       <div className={`book-details ${!book.coverUrl ? 'no-cover' : ''}`}>
         <div>
@@ -723,20 +644,20 @@ function App() {
 
  {selectedBookId && (
   <BookDetails
-    bookId={selectedBookId!== null?selectedBookId :bookId}
-    selectedChapterId={selectedChapterId}
-    onBackClick={handleBackClick}
-    chapterId={selectedChapter}
-    showChapter={selectedChapter}
-    setShowChapter={setSelectedChapter}
-    userId={user?.id}
-    bookNeedsRequest={bookNeedsRequest}
-    setBookNeedsRequest={setBookNeedsRequest}
-    bookTitle={bookTitle !== null ? bookTitle : undefined }
-    bookAuthor={bookAuthor !== null ? bookAuthor : undefined}
-    bookUrl={bookUrl !== null ? bookUrl : undefined }
-                 
-    />
+  bookId={selectedBookId}
+  selectedChapterId={selectedChapterId}
+  onBackClick={handleBackClick}
+  chapterId={selectedChapter}
+  showChapter={selectedChapter}
+  setShowChapter={setSelectedChapter}
+  userId={user?.id}
+  bookNeedsRequest={bookNeedsRequest}
+  setBookNeedsRequest={setBookNeedsRequest}
+  bookTitle={bookTitle}
+  bookAuthor={bookAuthor}
+  bookUrl={bookUrl}
+  generatedCoverUrl={generatedCoverUrl} // Pass the generated cover URL
+/>
 )}
       </main>
       </div>

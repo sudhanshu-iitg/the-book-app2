@@ -9,7 +9,7 @@ const supabaseUrl = process.env.REACT_APP_supabaseUrl;
 const supabaseKey = process.env.REACT_APP_supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BookDetails = ({ bookId, onBackClick, showChapter, setShowChapter, userId, bookNeedsRequest, setBookNeedsRequest, bookTitle, bookAuthor, bookUrl, selectedChapterId }) => {
+const BookDetails = ({ bookId, onBackClick, showChapter, setShowChapter, userId, bookNeedsRequest, setBookNeedsRequest, bookTitle, bookAuthor, bookUrl, selectedChapterId,generatedCoverUrl  }) => {
   const navigate = useNavigate();
   const [book, setBook] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -23,6 +23,7 @@ const BookDetails = ({ bookId, onBackClick, showChapter, setShowChapter, userId,
   const [newChapterIds, setNewChapterIds] = useState(new Set());
   const prevChaptersRef = useRef([]);
   const pollIntervalRef = useRef(null);
+  const coverUrl = book?.coverUrl || generatedCoverUrl;
 
   useEffect(() => {
     fetchBookDetails();
@@ -217,7 +218,7 @@ setChapterProgress(progress);
     setIsProcessing(true);
   
     try {
-      const apiUrl = `https://thebookapp-production-eb6d.up.railway.app/store?key=true&url=${encodeURIComponent(bookUrl)}&title=${encodeURIComponent(bookTitle)}&author=${encodeURIComponent(bookAuthor || 'Unknown Author')}&id=${encodeURIComponent(bookId)}`;
+      const apiUrl = `https://thebookapp-production-eb6d.up.railway.app/store?key=true&url=${encodeURIComponent(bookUrl)}&title=${encodeURIComponent(bookTitle)}&author=${encodeURIComponent(bookAuthor || 'Unknown Author')}&id=${encodeURIComponent(bookId)}&coverUrl=${encodeURIComponent(coverUrl)}`;
       const response = await fetch(apiUrl);
   
       if (!response.ok) {
@@ -289,9 +290,10 @@ setChapterProgress(progress);
   const renderBookContent = () => (
     <>
       <div className="book-details-header">
-        {book?.coverUrl && (
-          <img src={book.coverUrl} alt={book.Title} className="book-cover-small" />
-        )}
+        
+        {coverUrl && (
+        <img src={coverUrl} alt={bookTitle} className="book-cover-small" />
+      )}
         <div className="book-info">
           <h1 className="book-title">{book?.Title || bookTitle}</h1>
           <p className="book-author">by {book?.Author || bookAuthor}</p>
@@ -370,6 +372,10 @@ setChapterProgress(progress);
     return (
       <div className="book-details-container">
         <div className="book-details-header">
+        
+        {coverUrl && (
+        <img src={coverUrl} alt={bookTitle} className="book-cover-small" />
+      )}
           <div className="book-info">
             <h1 className="book-title">{bookTitle}</h1>
             <p className="book-author">{bookAuthor}</p>

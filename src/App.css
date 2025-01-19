@@ -511,7 +511,7 @@ button:hover {
   max-width: 1200px;
   margin: 5 auto;
   text-overflow : hidden;
-  overflow: hidden;
+  /* overflow: hidden; */
   white-space: nowrap; 
 }
 .truncate-custom {
@@ -543,6 +543,9 @@ button:hover {
   font-weight: bold;
   margin-bottom: 8px;
   color: #000;
+  overflow-wrap: break-word; /* Breaks only at whole words */
+  word-break: normal; /* Ensures words are not broken in the middle */
+  white-space: normal; /* Ensures text wraps normally */
 }
 
 .topic-card p {
@@ -628,7 +631,7 @@ button:hover {
 
 @media (max-width: 480px) {
   .topics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     margin: 5;
     padding: 2%;
   }

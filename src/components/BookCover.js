@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const BookCover = ({ book }) => {
+const BookCover = ({ book, onCoverGenerated }) => {
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -19,6 +19,7 @@ const BookCover = ({ book }) => {
           const data = await response.json();
           if (data.coverUrl) {
             setCoverUrl(data.coverUrl);
+            onCoverGenerated(data.coverUrl); // Call the callback with the generated cover URL
           } else {
             setHasError(true);
           }
@@ -34,7 +35,7 @@ const BookCover = ({ book }) => {
     if (!coverUrl && !hasError) {
       fetchBookCover();
     }
-  }, [book, coverUrl, hasError]);
+  }, [book, coverUrl, hasError, onCoverGenerated]);
 
   const handleImageError = () => {
     setCoverUrl(null);
@@ -42,17 +43,15 @@ const BookCover = ({ book }) => {
   };
 
   return (
-    <div className=" bg-gray-100 relative">
+    <div className="bg-gray-100 relative">
       {isLoading ? (
-        <div className=" items-center justify-center">
+        <div className="items-center justify-center">
           <div className="border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : coverUrl && !hasError ? (
         <img
           src={coverUrl}
           alt={book.Title}
-          // className=" object-contain" // Changed to object-contain
-          // style={{  objectFit: 'contain' }}
           onError={handleImageError}
         />
       ) : (
