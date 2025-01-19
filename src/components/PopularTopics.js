@@ -55,7 +55,7 @@ const iconComponents = {
   'Mindfulness & Mental Health': Headphones,
 };
 
-const PopularTopics = ({ categories, onTopicClick }) => {
+const PopularTopics = ({ categories, onTopicClick , onBookClick}) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -136,7 +136,7 @@ const PopularTopics = ({ categories, onTopicClick }) => {
             <div
               key={book.Id}
               className="book-item-horizontal"
-              onClick={() => onTopicClick(book.Id)} // Optional: Handle book click
+              onClick={() => onBookClick(book)} // Optional: Handle book click
             >
               <div className="book-cover-wrapper">
                 <BookCover book={book} />
