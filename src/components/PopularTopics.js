@@ -106,26 +106,24 @@ const PopularTopics = ({ categories, onTopicClick }) => {
       <div className="topics-tabs">
         {categories.map((category) => {
           const IconComponent = iconComponents[category.name] || Book;
-            return (
+          return (
             <div
               key={category.id}
               className={`topic-tab ${selectedCategory === category.id ? 'selected' : ''}`}
               onClick={() => handleCategoryClick(category.id)}
               style={{
-              flex: '0 0 auto',
-              padding: '10px 20px',
-              margin: '0 5px',
-              cursor: 'pointer',
-              borderBottom: selectedCategory === category.id ? '2px solid blue' : 'none',
-              width: '20%', // Fixed width
-              whiteSpace: 'normal', // Allow text to wrap
-              wordWrap: 'break-word', // Break long words
+                flex: '0 0 auto',
+                padding: '10px 20px',
+                margin: '0 5px',
+                cursor: 'pointer',
+                borderBottom: selectedCategory === category.id ? '2px solid blue' : 'none',
+                width: 'auto', // Adjusted for mobile
+                whiteSpace: 'nowrap', // Prevent text wrapping
               }}
             >
-              
               <h3>{category.name}</h3>
             </div>
-            );
+          );
         })}
       </div>
 
