@@ -85,3 +85,14 @@
     color: #666;
     margin: 0.25rem 0 0;
 }
+.topics-tabs {
+    display: flex;
+    overflow-x: auto; /* Ensure horizontal scrolling */
+    padding: 10px 0;
+    scrollbar-width: none; /* Hide scrollbar in Firefox */
+  }
+  
+  /* Hide scrollbar in WebKit browsers */
+  .topics-tabs::-webkit-scrollbar {
+    display: none;
+  }

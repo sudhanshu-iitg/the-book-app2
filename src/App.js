@@ -332,7 +332,8 @@ function App() {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .select('*');
+        .select('*')
+        .order('order', { ascending: true });
       
       if (error) throw error;
       
@@ -391,12 +392,12 @@ function App() {
         if (error) throw error;
   
         setBooks(booksData);
-        setShowCategories(false);
-        setShowBooks(true);
-        setSelectedCategoryId(categoryId);
+        // setShowCategories(false);
+        // setShowBooks(true);
+        // setSelectedCategoryId(categoryId);
         setSelectedHeaderName(categoryData.name);
-        setShowBackButton(true);
-        navigate(`/${categoryId}`);
+        // setShowBackButton(true);
+        // navigate(`/${categoryId}`);
   
         // Set navigation context to 'category' when fetching books by category
         setNavigationContext('category');
@@ -566,7 +567,6 @@ function App() {
       <main>
       {isLoading && (
         <div>
-          
         <div className="processing-info mt-4 p-4 bg-blue-50 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -598,6 +598,7 @@ function App() {
         <PopularTopics 
       categories={categories} 
       onTopicClick={(categoryId) => fetchBooksByCategory(categoryId)} 
+      onBookClick={(book) => handleBookClick(book, false)} // Home screen
     />
     {professions.map((profession) => (
       <ProfessionBooks 
@@ -665,3 +666,4 @@ function App() {
 }
 
 export default App;
+export { supabase };

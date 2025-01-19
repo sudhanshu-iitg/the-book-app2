@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Book,
   Brain,
@@ -11,107 +11,149 @@ import {
   TrendingUp,
   Clock,
   Plus,
-  Minus, // For Science
-  Globe, // For Politics, Culture & Society
-  Leaf, // For Environment
-  Smile, // For Happiness & Self-Improvement
-  Award, // For Motivation & Inspiration
-  Megaphone, // For Marketing & Sales
-  Flag, // For Management & Leadership
-  Activity, // For Health, Fitness & Nutrition
-  BookOpen, // For Education & Philosophy
-  MessageCircle, // For Communication
-  Cross, // For Religion & Spirituality
-  Cpu, // For Technology & the Future
-  Headphones, // For Mindfulness & Mental Health
+  Minus,
+  Globe,
+  Leaf,
+  Smile,
+  Award,
+  Megaphone,
+  Flag,
+  Activity,
+  BookOpen,
+  MessageCircle,
+  Cross,
+  Cpu,
+  Headphones,
 } from 'lucide-react';
-const PopularTopics = ({ categories, onTopicClick }) => {
-  const [showAll, setShowAll] = useState(false);
+import { supabase } from '../App';
+import BookCover from './BookCover'; // Import BookCover component
+import './Profession.css'; // Import the CSS file for styling
 
-  // Map of category names to icons
-  const iconComponents = {
-    'Science': Book, // Assuming Flask is an icon for Science
-    'Biography & History': User, // Assuming Users is an icon for Biography & History
-    'Politics, Culture & Society': Globe, // Assuming Globe is an icon for Politics, Culture & Society
-    'Economics': TrendingUp, // Assuming TrendingUp is an icon for Economics
-    'Environment': Leaf, // Assuming Leaf is an icon for Environment
-    'Relationships, Sex & Parenting': Heart, // Assuming Heart is an icon for Relationships, Sex & Parenting
-    'Happiness & Self-Improvement': Smile, // Assuming Smile is an icon for Happiness & Self-Improvement
-    'Money, Investing & Personal Finance': DollarSign, // Assuming DollarSign is an icon for Money, Investing & Personal Finance
-    'Productivity': Briefcase, // Assuming Briefcase is an icon for Productivity
-    'Psychology': Brain, // Assuming Brain is an icon for Psychology
-    'Motivation & Inspiration': Award, // Assuming Award is an icon for Motivation & Inspiration
-    'Marketing & Sales': Megaphone, // Assuming Megaphone is an icon for Marketing & Sales
-    'Management & Leadership': Flag, // Assuming Flag is an icon for Management & Leadership
-    'Health, Fitness & Nutrition': Activity, // Assuming Activity is an icon for Health, Fitness & Nutrition
-    'Business, Startups & Entrepreneurship': TrendingUp, // Assuming TrendingUp is an icon for Business, Startups & Entrepreneurship
-    'Creativity & Writing': Paintbrush, // Assuming Paintbrush is an icon for Creativity & Writing
-    'Education & Philosophy': BookOpen, // Assuming BookOpen is an icon for Education & Philosophy
-    'Communication': MessageCircle, // Assuming MessageCircle is an icon for Communication
-    'Religion & Spirituality': Cross, // Assuming Cross is an icon for Religion & Spirituality
-    'Technology & the Future': Cpu, // Assuming Cpu is an icon for Technology & the Future
-    'Work, Careers & Success': Briefcase, // Assuming Briefcase is an icon for Work, Careers & Success
-    'Mindfulness & Mental Health': Headphones, // Assuming Headphones is an icon for Mindfulness & Mental Health
+// Define the iconComponents object
+const iconComponents = {
+  'Science': Book,
+  'Biography & History': User,
+  'Politics, Culture & Society': Globe,
+  'Economics': TrendingUp,
+  'Environment': Leaf,
+  'Relationships, Sex & Parenting': Heart,
+  'Happiness & Self-Improvement': Smile,
+  'Money, Investing & Personal Finance': DollarSign,
+  'Productivity': Briefcase,
+  'Psychology': Brain,
+  'Motivation & Inspiration': Award,
+  'Marketing & Sales': Megaphone,
+  'Management & Leadership': Flag,
+  'Health, Fitness & Nutrition': Activity,
+  'Business, Startups & Entrepreneurship': TrendingUp,
+  'Creativity & Writing': Paintbrush,
+  'Education & Philosophy': BookOpen,
+  'Communication': MessageCircle,
+  'Religion & Spirituality': Cross,
+  'Technology & the Future': Cpu,
+  'Work, Careers & Success': Briefcase,
+  'Mindfulness & Mental Health': Headphones,
+};
+
+const PopularTopics = ({ categories, onTopicClick }) => {
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [books, setBooks] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Set the first category as selected when categories are loaded
+  useEffect(() => {
+    if (categories.length > 0 && !selectedCategory) {
+      setSelectedCategory(categories[0].id);
+    }
+  }, [categories, selectedCategory]);
+
+  // Fetch books for the selected category
+  const fetchBooksByCategory = async (categoryId) => {
+    setIsLoading(true);
+    try {
+      const { data: booksData, error } = await supabase
+        .from('books')
+        .select('*')
+        .eq('category_id', categoryId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setBooks(booksData);
+    } catch (error) {
+      console.error('Error fetching books:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Display either all categories or just the first 5
-  const displayedCategories = showAll ? categories : categories.slice(0, 5);
-  const remainingCount = categories.length - 5;
+  // Fetch books when the selected category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchBooksByCategory(selectedCategory);
+    }
+  }, [selectedCategory]);
+
+  // Handle category selection
+  const handleCategoryClick = (categoryId) => {
+    setSelectedCategory(categoryId);
+    onTopicClick(categoryId); // Optional: Call the parent's onTopicClick if needed
+  };
 
   return (
-    <div >
+    <div className="profession-books">
       <h2 style={{ paddingLeft: '2%' }}>Popular Topics</h2>
-      <div className="topics-grid">
-        {displayedCategories.map((category, index) => {
+      <div className="topics-tabs">
+        {categories.map((category) => {
           const IconComponent = iconComponents[category.name] || Book;
-          
-          return (
-  <div
-    key={index}
-    className="topic-card"
-    onClick={() => onTopicClick(category.id)}
-    role="button"
-    tabIndex={0}
-    aria-label={`Select ${category.name}`}
-    onKeyDown={(e) => e.key === 'Enter' && onTopicClick(category.id)}
-  >
-    <div>
-      <IconComponent  />
-      <h3 >
-        {category.name}
-      </h3>
-    </div>
- 
-
-  </div>
-);
+            return (
+            <div
+              key={category.id}
+              className={`topic-tab ${selectedCategory === category.id ? 'selected' : ''}`}
+              onClick={() => handleCategoryClick(category.id)}
+              style={{
+              flex: '0 0 auto',
+              padding: '10px 20px',
+              margin: '0 5px',
+              cursor: 'pointer',
+              borderBottom: selectedCategory === category.id ? '2px solid blue' : 'none',
+              width: '20%', // Fixed width
+              whiteSpace: 'normal', // Allow text to wrap
+              wordWrap: 'break-word', // Break long words
+              }}
+            >
+              
+              <h3>{category.name}</h3>
+            </div>
+            );
         })}
+      </div>
 
-        {categories.length > 5 && !showAll && (
-          <div 
-            className="topic-card hover:bg-blue-50 transition-colors cursor-pointer"
-            onClick={() => setShowAll(true)}
-          >
-            <div className="flex items-center gap-2">
-              <Plus className="w-6 h-6 text-blue-600" />
-              <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">
-                View  More
-              </h3>
+      {/* Display books in a horizontal list or show empty state */}
+      <div className="book-list-horizontal">
+        {isLoading ? (
+          <div>Loading...</div>
+        ) : books.length > 0 ? (
+          books.map((book) => (
+            <div
+              key={book.Id}
+              className="book-item-horizontal"
+              onClick={() => onTopicClick(book.Id)} // Optional: Handle book click
+            >
+              <div className="book-cover-wrapper">
+                <BookCover book={book} />
+              </div>
+              <div className="book-details">
+                <h4 className="book-title">{book.Title}</h4>
+                <p className="book-author">{book.Author || 'Unknown Author'}</p>
+              </div>
             </div>
-          </div>
-        )}
-
-        {showAll && (
-          <div 
-            className="topic-card hover:bg-blue-50 transition-colors cursor-pointer"
-            onClick={() => setShowAll(false)}
-          >
-            <div className="flex items-center gap-2">
-              <Minus className="w-6 h-6 text-blue-600" />
-              <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">
-                Show Less
-              </h3>
-            </div>
+          ))
+        ) : (
+          // Empty state message
+          <div className="empty-state">
+            <h3>No books found in this category.</h3>
+            <p>Try searching for a book to add to this category.</p>
           </div>
         )}
       </div>
