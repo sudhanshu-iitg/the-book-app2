@@ -231,7 +231,10 @@
   font-size: 0.9rem;
   color: #000;
   animation: fadeIn 0.3s ease;
-  overflow-wrap: break-word; /* Ensure long text wraps and doesn't overflow horizontally */
+  overflow-wrap: break-word;
+  border-left: none; /* Remove left border */
+  border-right: 4px solid #000;  /* Add right border for highlight */
+  margin-bottom: 16px; /* Add margin to separate from input */
 }
 .selected-text-display {
   margin-bottom: 16px;
@@ -240,11 +243,38 @@
   border-radius: 8px;
   font-size: 0.9rem;
   color: #000;
-  border-left: 4px solid #000;
+  border-left: 4px solid #000; /* Remove left border */
+  border-right: none; /* Add right border for highlight */
 }
+
 
 .selected-text-display p {
   margin: 0;
   font-style: italic;
   color: #666;
+}
+.quick-options {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.quick-option-button {
+  padding: 8px 12px;
+  background-color: #f0f0f0;
+  color: #000;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.quick-option-button:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+.quick-option-button:active {
+  transform: translateY(0);
 }
