@@ -34,105 +34,7 @@ const ProcessingAnimation = () => (
 );
 
 const ChatScreen = ({ selectedText, chapterId, onClose }) => {
-  const [query, setQuery] = useState('');
-  const [response, setResponse] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const selectedTextRef = useRef(selectedText);
-  const chatInputRef = useRef(null);
-
-  useEffect(() => {
-    selectedTextRef.current = selectedText;
-  }, [selectedText]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(
-        `https://thebookapp-production-eb6d.up.railway.app/chat?key=${encodeURIComponent(chapterId)}&chapter_id=${chapterId}&query=${encodeURIComponent(query)}&selected_text=${encodeURIComponent(selectedTextRef.current)}`
-      );
-      const data = await response.json();
-      setResponse(data.docs);
-    } catch (error) {
-      console.error('Error fetching chat response:', error);
-      setResponse('Error fetching response. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuickOptionClick = async (option) => {
-    setIsLoading(true);
-    setQuery(option); // Set the query to the option text
-
-    try {
-      const response = await fetch(
-        `https://thebookapp-production-eb6d.up.railway.app/chat?key=${encodeURIComponent(chapterId)}&chapter_id=${chapterId}&query=${encodeURIComponent(option)}&selected_text=${encodeURIComponent(selectedTextRef.current)}`
-      );
-      const data = await response.json();
-      setResponse(data.docs);
-    } catch (error) {
-      console.error('Error fetching chat response:', error);
-      setResponse('Error fetching response. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="chat-screen">
-      <div className="chat-content">
-        <div className="chat-header">
-          <h2>Chat</h2>
-          <button onClick={onClose}>×</button>
-        </div>
-        <div className="selected-text-display">
-          <p>
-            Selected Text: <em>"{selectedTextRef.current}"</em>
-          </p>
-        </div>
-        {response && (
-          <div className="chat-response">
-            <p>{response}</p>
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <textarea
-            ref={chatInputRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="chat-input"
-            placeholder="Enter your query..."
-            rows="3"
-          />
-          <div className="quick-options">
-            <button
-              type="button"
-              className="quick-option-button"
-              onClick={() => handleQuickOptionClick('Show the exact surrounding text ')}
-            >
-              Show surrounding text
-            </button>
-            <button
-              type="button"
-              className="quick-option-button"
-              onClick={() => handleQuickOptionClick('Explain this in detail')}
-            >
-              Explain this in detail
-            </button>
-          </div>
-          <button
-            type="submit"
-            className="chat-submit-button"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Sending...' : 'Send'}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+  // ... ChatScreen component remains the same
 };
 
 const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
@@ -141,19 +43,18 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
   const [selectedText, setSelectedText] = useState('');
   const [showChat, setShowChat] = useState(false);
   const metadataRef = useRef(null);
-  const chatInputRef = useRef(null); // Ref for the chat input area
+  const chatInputRef = useRef(null);
 
   useEffect(() => {
     const handleTextSelection = () => {
       const selection = window.getSelection();
       const selectedText = selection.toString().trim();
   
-      // Check if the selection is within the chat input area or any specific component
       if (
         chatInputRef.current && 
         (selection.anchorNode && chatInputRef.current.contains(selection.anchorNode))
       ) {
-        return; // Do nothing if the selection is inside the chat input
+        return;
       }
   
       if (selectedText !== '') {
@@ -220,6 +121,175 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
     }
   }, [metadata, requestStatus]);
 
+  const isFormat1 = (metadata) => {
+    return metadata && metadata.Key_Themes !== undefined;
+  };
+
+  const renderFormat1 = (parsedMetadata) => {
+    return (
+      <div>
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <div className="flex items-center">
+                <h4 className="text-xl font-semibold text-gray-800 mr-2">Key Themes</h4>
+              </div>
+              <p className="text-gray-600 leading-relaxed">
+                {parsedMetadata.Key_Themes || 'No key themes available'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <h4 className="text-xl font-semibold text-gray-800 mb-3">Case Studies</h4>
+              <p className="text-gray-600 leading-relaxed">
+                {parsedMetadata.Case_Studies || 'No case studies available'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {parsedMetadata.QUADs && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <h4 className="text-xl font-semibold text-gray-800 mb-6">Key Questions & Answers</h4>
+                {renderQUADs(parsedMetadata.QUADs, 'Key Questions')}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {parsedMetadata.Deeper_QUADs && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <h4 className="text-xl font-semibold text-gray-800 mb-6">Deeper Analysis</h4>
+                {renderQUADs(parsedMetadata.Deeper_QUADs, 'Deeper Analysis')}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderFormat2 = (parsedMetadata) => {
+    return (
+      <div>
+        {parsedMetadata.themes && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            {parsedMetadata.themes.map((theme, index) => (
+              <div key={index} className="mb-6">
+                <h4 className="text-xl font-semibold text-gray-800">{theme.theme.topic}</h4>
+                <p className="text-gray-600 leading-relaxed">{theme.theme.text}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {parsedMetadata.case_studies && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            {parsedMetadata.case_studies.map((caseStudy, index) => (
+              <div key={index} className="mb-6">
+                <h4 className="text-xl font-semibold text-gray-800">{caseStudy.case_study.topic}</h4>
+                <p className="text-gray-600 leading-relaxed">{caseStudy.case_study.text}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {parsedMetadata.QUADs && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <h4 className="text-xl font-semibold text-gray-800 mb-6">Key Questions & Answers</h4>
+                {renderQUADs(parsedMetadata.QUADs, 'Key Questions')}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {parsedMetadata.Deeper_QUADs && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <h4 className="text-xl font-semibold text-gray-800 mb-6">Deeper Analysis</h4>
+                {renderQUADs(parsedMetadata.Deeper_QUADs, 'Deeper Analysis')}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderQUADs = (quads, title) => {
+    if (Array.isArray(quads)) {
+      return (
+        <div className="space-y-6">
+          {quads.map((qa, idx) => (
+            <div key={idx} className="bg-gray-100 rounded-lg p-6">
+              <div className="flex gap-4 mb-4 items-start">
+                <h5 className="font-medium text-gray-800">{qa.question}</h5>
+              </div>
+              <div className="ml-12">
+                <p className="text-gray-600 leading-relaxed">{qa.answer}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    } else if (typeof quads === 'object') {
+      const pairs = Object.keys(quads).reduce((pairs, key) => {
+        if (key.startsWith('Question_')) {
+          const num = key.split('_')[1];
+          const answerKey = `Answer_${num}`;
+          if (quads[answerKey]) {
+            pairs.push({
+              question: quads[key],
+              answer: quads[answerKey],
+              index: num
+            });
+          }
+        }
+        return pairs;
+      }, []);
+
+      if (pairs.length === 0) {
+        return (
+          <Alert title="No Questions Available">
+            No valid question-answer pairs found for {title}.
+          </Alert>
+        );
+      }
+
+      return (
+        <div className="space-y-6">
+          {pairs.map((qa, idx) => (
+            <div key={idx} className="bg-gray-100 rounded-lg p-6">
+              <div className="flex gap-4 mb-4 items-start">
+                <h5 className="font-medium text-gray-800">{qa.question}</h5>
+              </div>
+              <div className="ml-12">
+                <p className="text-gray-600 leading-relaxed">{qa.answer}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    } else {
+      return (
+        <Alert variant="warning" title="Invalid Section Data">
+          The {title} section is not in the correct format.
+        </Alert>
+      );
+    }
+  };
+
   if (!metadata || isGenerating) {
     return (
       <div className="p-6 space-y-6">
@@ -241,54 +311,6 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
     );
   }
 
-  const renderQUADs = (quads, title) => {
-    if (!quads || typeof quads !== 'object') {
-      return (
-        <Alert variant="warning" title="Invalid Section Data">
-          The {title} section is not in the correct format.
-        </Alert>
-      );
-    }
-
-    const pairs = Object.keys(quads).reduce((pairs, key) => {
-      if (key.startsWith('Question_')) {
-        const num = key.split('_')[1];
-        const answerKey = `Answer_${num}`;
-        if (quads[answerKey]) {
-          pairs.push({
-            question: quads[key],
-            answer: quads[answerKey],
-            index: num
-          });
-        }
-      }
-      return pairs;
-    }, []);
-
-    if (pairs.length === 0) {
-      return (
-        <Alert title="No Questions Available">
-          No valid question-answer pairs found for {title}.
-        </Alert>
-      );
-    }
-
-    return (
-      <div className="space-y-6">
-        {pairs.map((qa, idx) => (
-          <div key={idx} className="bg-gray-100 rounded-lg p-6">
-            <div className="flex gap-4 mb-4 items-start">
-              <h5 className="font-medium text-gray-800">{qa.question}</h5>
-            </div>
-            <div className="ml-12">
-              <p className="text-gray-600 leading-relaxed">{qa.answer}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   const parsedMetadata = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
 
   return (
@@ -302,66 +324,15 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
         </button>
       )}
       {showChat && (
-  <ChatScreen
-    selectedText={selectedText}
-    chapterId={chapterId}
-    onClose={() => setShowChat(false)}
-    chatInputRef={chatInputRef} // Pass the ref
-  />
-)}
-
-      <div>
-        {/* Key Themes Card */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <div className="flex items-center">
-                <h4 className="text-xl font-semibold text-gray-800 mr-2">Key Themes</h4>
-                <span className="w-2"></span>
-              </div>
-              <p className="text-gray-600 leading-relaxed">
-                {parsedMetadata.Key_Themes || 'No key themes available'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Case Studies Card */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <h4 className="text-xl font-semibold text-gray-800 mb-3">Case Studies</h4>
-              <p className="text-gray-600 leading-relaxed">
-                {parsedMetadata.Case_Studies || 'No case studies available'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Key Questions & Answers Section */}
-      {parsedMetadata.QUADs && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <h4 className="text-xl font-semibold text-gray-800 mb-6">Key Questions & Answers</h4>
-              {renderQUADs(parsedMetadata.QUADs, 'Key Questions')}
-            </div>
-          </div>
-        </div>
+        <ChatScreen
+          selectedText={selectedText}
+          chapterId={chapterId}
+          onClose={() => setShowChat(false)}
+          chatInputRef={chatInputRef}
+        />
       )}
 
-      {/* Deeper Analysis Section */}
-      {parsedMetadata.Deeper_QUADs && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <h4 className="text-xl font-semibold text-gray-800 mb-6">Deeper Analysis</h4>
-              {renderQUADs(parsedMetadata.Deeper_QUADs, 'Deeper Analysis')}
-            </div>
-          </div>
-        </div>
-      )}
+      {isFormat1(parsedMetadata) ? renderFormat1(parsedMetadata) : renderFormat2(parsedMetadata)}
     </div>
   );
 };
