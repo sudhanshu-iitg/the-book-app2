@@ -63,7 +63,7 @@
 
 .nav-button:disabled {
   color: #ccc;
-  cursor: not-allowed;
+  /* cursor: not-allowed; */
 }
 
 .nav-button svg {
@@ -262,7 +262,7 @@ p {
 .nav-button-next.disabled {
   color: #ccc;
   border-color: #ccc;
-  cursor: not-allowed;
+  /* cursor: not-allowed; */
 }
 
 .nav-button-prev.disabled:hover,

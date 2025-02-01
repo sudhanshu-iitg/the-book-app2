@@ -34,7 +34,107 @@ const ProcessingAnimation = () => (
 );
 
 const ChatScreen = ({ selectedText, chapterId, onClose }) => {
-  // ... ChatScreen component remains the same
+  const [query, setQuery] = useState('');
+  const [response, setResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const selectedTextRef = useRef(selectedText);
+  const chatInputRef = useRef(null);
+
+  useEffect(() => {
+    selectedTextRef.current = selectedText;
+  }, [selectedText]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(
+        `https://thebookapp-production-eb6d.up.railway.app/chat?key=${encodeURIComponent(chapterId)}&chapter_id=${chapterId}&query=${encodeURIComponent(query)}&selected_text=${encodeURIComponent(selectedTextRef.current)}`
+      );
+      const data = await response.json();
+      setResponse(data.docs);
+    } catch (error) {
+      console.error('Error fetching chat response:', error);
+      setResponse('Error fetching response. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickOptionClick = async (option) => {
+    setIsLoading(true);
+    setQuery(option); // Set the query to the option text
+
+    try {
+      const response = await fetch(
+        `https://thebookapp-production-eb6d.up.railway.app/chat?key=${encodeURIComponent(chapterId)}&chapter_id=${chapterId}&query=${encodeURIComponent(option)}&selected_text=${encodeURIComponent(selectedTextRef.current)}`
+      );
+      const data = await response.json();
+      setResponse(data.docs);
+    } catch (error) {
+      console.error('Error fetching chat response:', error);
+      setResponse('Error fetching response. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="chat-screen">
+      <div className="chat-content">
+        <div className="chat-header">
+          <h2>Chat</h2>
+          <button onClick={onClose}>×</button>
+        </div>
+        {selectedTextRef.current && (
+  <div className="selected-text-display">
+    <p>
+      Selected Text: <em>"{selectedTextRef.current}"</em>
+    </p>
+  </div>
+)}
+        {response && (
+          <div className="chat-response">
+            <p>{response}</p>
+          </div>
+        )}
+        <form onSubmit={handleSubmit}>
+          <textarea
+            ref={chatInputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="chat-input"
+            placeholder="Enter your query..."
+            rows="3"
+          />
+          <div className="quick-options">
+            <button
+              type="button"
+              className="quick-option-button"
+              onClick={() => handleQuickOptionClick('Show the exact surrounding text ')}
+            >
+              Show surrounding text
+            </button>
+            <button
+              type="button"
+              className="quick-option-button"
+              onClick={() => handleQuickOptionClick('Explain this in detail')}
+            >
+              Explain this in detail
+            </button>
+          </div>
+          <button
+            type="submit"
+            className="chat-submit-button"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Sending...' : 'Send'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 };
 
 const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
@@ -315,7 +415,7 @@ const MetadataDisplay = ({ metadata, chapterId, bookId, onMetadataUpdate }) => {
 
   return (
     <div ref={metadataRef}>
-      {selectedText && (
+      {true && (
         <button
           onClick={() => setShowChat(true)}
           className="chat-button"
