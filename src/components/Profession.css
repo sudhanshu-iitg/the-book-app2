@@ -135,21 +135,21 @@
   }
   
   .book-cover-wrapper {
-    width: 100%;
+    /* width: 100%; */
     height: auto;
   }
   
   .book-details {
-    text-align: center;
+    text-align: left;
   }
   
   .book-title {
-    font-size: 14px;
+    font-size: 22px;
     margin: 5px 0;
   }
   
   .book-author {
-    font-size: 12px;
+    font-size: 16x;
     color: #666;
   }
   
@@ -170,10 +170,10 @@
     }
   
     .book-title {
-      font-size: 12px; /* Reduce font size for smaller screens */
+      font-size: 22px; /* Reduce font size for smaller screens */
     }
   
     .book-author {
-      font-size: 10px; /* Reduce font size for smaller screens */
+      font-size: 16px; /* Reduce font size for smaller screens */
     }
   }
