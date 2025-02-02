@@ -180,6 +180,7 @@ const [currentCardIndex, setCurrentCardIndex] = useState(0);
     if (tab === 'cards') {
       fetchCardContent();
     }
+    else setLoading(false)
   };
 
   const handleMetadataUpdate = (newMetadata) => {
@@ -226,56 +227,46 @@ const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
       <div className="bg-gray-100 rounded-lg ">
       <div
-  className="gap-2 p-2 bg-gray-100 rounded-lg"
+  className=" p-2 bg-gray-100 rounded-lg"
   style={{
     display: "inline-flex", // Inline-flex ensures wrapping content width
     
-    background: "#f5f5f5",
+    // background: "#f5f5f5",
     borderRadius: "8px"
   }}
 >
-      <button
-        onClick={() => handleTabChange('metadata')}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-          activeTab === 'metadata' 
-            ? 'bg-white shadow-sm' 
-            : 'hover:bg-white/50 bg-grey'
-        }`}
-        style={{background: "#f5f5f5"}}
-      >
-        <Code 
-          className={`w-5 h-5 ${
-            activeTab === 'metadata' 
-              ? 'text-black' 
-              : 'text-black'
-          }`}
-        />
-      </button>
-      <button
-        onClick={() => handleTabChange('content')}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-          activeTab === 'content' 
-            ? 'bg-white shadow-sm' 
-            : 'bg-yellow'
-        }`}
-        style={{background: "#f5f5f5"}}
-      >
-        <BookOpen 
-          className={`w-5 h-5 ${
-            activeTab === 'content' 
-              ? 'text-black' 
-              : 'text-black '
-          }`}
-        />
-      </button>
-      <button
-  onClick={() => handleTabChange('cards')}
-  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-    activeTab === 'cards' ? 'bg-white ' 
-            : 'bg-transparent'
+<button
+  onClick={() => handleTabChange('metadata')}
+  className={` ${
+    activeTab === 'metadata' 
+      ? 'bg-white border-b-4 border-blue-500 ' 
+      : 'hover:bg-white/50 bg-white'
   }`}
+  style={{ borderRadius:"0",color:'black',borderBottom: activeTab === 'metadata'?'3px solid black' : "none"}}
 >
-  <MessageSquare className={`w-5 h-5 ${activeTab === 'cards' ? 'text-black' : 'text-black'}`} />
+  Summary
+</button>
+<button
+  onClick={() => handleTabChange('content')}
+  className={` ${
+    activeTab === 'content' 
+      ? 'bg-white border-b-4 border-blue-500 font-weight-bold' 
+      : 'hover:bg-white/50 bg-white'
+  }`}
+  style={{borderRadius:"0", color:'black',borderBottom: activeTab === 'content'?'3px solid black' : "none"}}
+>
+  Full book
+</button>
+<button
+  onClick={() => handleTabChange('cards')}
+  className={` ${
+    activeTab === 'cards' 
+      ? 'bg-white border-b-4 border-blue-500 font-weight-bold' 
+      : 'hover:bg-white/50 bg-white'
+  }`}
+  style={{ borderRadius:"0",color:'black',borderBottom: activeTab === 'cards'?'3px solid black' : "none"}}
+>
+  Cards
 </button>
         </div>
 
