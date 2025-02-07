@@ -174,6 +174,39 @@ const [currentCardIndex, setCurrentCardIndex] = useState(0);
       // fetchCardContent();
     }
   }, [activeTab, currentChapter.id]);
+  useEffect(() => {
+    const fetchChapterDetails = async () => {
+      if (chapterId && (!chapterTitle || !chapterNumber || !metadata)) {
+        setLoading(true);
+        try {
+          const { data, error } = await supabase
+            .from('chapter_contents')
+            .select('chapter_title, chapter_number, metadata')
+            .eq('id', chapterId)
+            .single();
+  
+          if (error) throw error;
+  
+          if (data) {
+            setCurrentChapter(prev => ({
+              ...prev,
+              title: data.chapter_title,
+              number: data.chapter_number,
+              metadata: data.metadata
+            }));
+            setMetadata(data.metadata); // Ensure metadata is updated separately
+          }
+        } catch (error) {
+          console.error('Error fetching chapter details:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+  
+    fetchChapterDetails();
+  }, [chapterId]);
+  
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);

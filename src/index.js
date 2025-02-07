@@ -18,8 +18,6 @@ root.render(
          <Route path="/books/:bookId/chapters/:chapterId" element={<App />} />
          {/* <Route path="/chapters/:chapterId" element={<App />} /> */}
          {/* <Route path="/books/:bookId/chapters" element={<BookDetails />} /> */}
-
-
     </Routes>
     {/* <App /> */}
     </BrowserRouter>
