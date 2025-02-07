@@ -319,10 +319,24 @@ const [currentCardIndex, setCurrentCardIndex] = useState(0);
                 />
               )}
               {activeTab === 'content' && (
-                <div style={{ whiteSpace: 'pre-wrap', width: '100%' }}>
-                  {chapterContent}
-                </div>
-              )}
+  <div
+    className={`chapter-content `}
+    style={{
+      whiteSpace: 'pre-wrap',
+      width: '100%',
+      maxWidth: '800px', // Optimal reading width
+      margin: '0 auto', // Center the text
+      padding: '20px',
+      overflowY: 'auto',
+      maxHeight: '70vh',
+      lineHeight: '1.6',
+      letterSpacing: '0.5px', // Slightly increased letter spacing
+    }}
+    
+  >
+    {chapterContent.trimStart()}
+  </div>
+)}
               {activeTab === 'cards' && (
   <ContentSection
     type="cards"
