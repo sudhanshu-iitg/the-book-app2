@@ -57,6 +57,7 @@ const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
   const fetchChapter = async (direction) => {
     setLoading(true);
+    handleTabChange('metadata');
     setError(null);
   
     const targetChapterNumber = direction === 'next' ? currentChapter.number + 1 : currentChapter.number - 1;
@@ -89,6 +90,7 @@ const [currentCardIndex, setCurrentCardIndex] = useState(0);
       console.error(`Error fetching ${direction} chapter:`, error);
       setError(`Failed to load ${direction} chapter. Please try again later.`);
     } finally {
+      
       setLoading(false);
     }
   };
